@@ -13,6 +13,14 @@
 		2FF796B91B9F0383004144EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796B81B9F0383004144EA /* Assets.xcassets */; };
 		2FF796BC1B9F0383004144EA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796BA1B9F0383004144EA /* LaunchScreen.storyboard */; };
 		2FF796C71B9F0383004144EA /* DecimalsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796C61B9F0383004144EA /* DecimalsTests.swift */; };
+		2FF796D31B9F03CA004144EA /* decContext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D21B9F03CA004144EA /* decContext.c */; settings = {ASSET_TAGS = (); }; };
+		2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D51B9F03F9004144EA /* Decimal.swift */; settings = {ASSET_TAGS = (); }; };
+		2FF796E21B9F03F9004144EA /* decNumber.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D71B9F03F9004144EA /* decNumber.c */; settings = {ASSET_TAGS = (); }; };
+		2FF796E31B9F03F9004144EA /* decnumber.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796D91B9F03F9004144EA /* decnumber.pdf */; settings = {ASSET_TAGS = (); }; };
+		2FF796E41B9F03F9004144EA /* decPacked.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DB1B9F03F9004144EA /* decPacked.c */; settings = {ASSET_TAGS = (); }; };
+		2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DD1B9F03F9004144EA /* GenericMath.swift */; settings = {ASSET_TAGS = (); }; };
+		2FF796E61B9F03F9004144EA /* ICU-license.html in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DE1B9F03F9004144EA /* ICU-license.html */; settings = {ASSET_TAGS = (); }; };
+		2FF796E71B9F03F9004144EA /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DF1B9F03F9004144EA /* readme.txt */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +44,20 @@
 		2FF796C21B9F0383004144EA /* DecimalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DecimalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FF796C61B9F0383004144EA /* DecimalsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalsTests.swift; sourceTree = "<group>"; };
 		2FF796C81B9F0383004144EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2FF796D11B9F03CA004144EA /* Decimals-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Decimals-Bridging-Header.h"; sourceTree = "<group>"; };
+		2FF796D21B9F03CA004144EA /* decContext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decContext.c; sourceTree = "<group>"; };
+		2FF796D41B9F03F9004144EA /* decContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decContext.h; sourceTree = "<group>"; };
+		2FF796D51B9F03F9004144EA /* Decimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decimal.swift; sourceTree = "<group>"; };
+		2FF796D61B9F03F9004144EA /* decn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decn.c; sourceTree = "<group>"; };
+		2FF796D71B9F03F9004144EA /* decNumber.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decNumber.c; sourceTree = "<group>"; };
+		2FF796D81B9F03F9004144EA /* decNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decNumber.h; sourceTree = "<group>"; };
+		2FF796D91B9F03F9004144EA /* decnumber.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = decnumber.pdf; sourceTree = "<group>"; };
+		2FF796DA1B9F03F9004144EA /* decNumberLocal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decNumberLocal.h; sourceTree = "<group>"; };
+		2FF796DB1B9F03F9004144EA /* decPacked.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decPacked.c; sourceTree = "<group>"; };
+		2FF796DC1B9F03F9004144EA /* decPacked.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decPacked.h; sourceTree = "<group>"; };
+		2FF796DD1B9F03F9004144EA /* GenericMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericMath.swift; sourceTree = "<group>"; };
+		2FF796DE1B9F03F9004144EA /* ICU-license.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "ICU-license.html"; sourceTree = "<group>"; };
+		2FF796DF1B9F03F9004144EA /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,12 +99,16 @@
 		2FF796B01B9F0383004144EA /* Decimals */ = {
 			isa = PBXGroup;
 			children = (
-				2FF796B11B9F0383004144EA /* AppDelegate.swift */,
+				2FF796D51B9F03F9004144EA /* Decimal.swift */,
+				2FF796DD1B9F03F9004144EA /* GenericMath.swift */,
 				2FF796B31B9F0383004144EA /* ViewController.swift */,
+				2FF796E81B9F0416004144EA /* decNumber */,
+				2FF796B11B9F0383004144EA /* AppDelegate.swift */,
 				2FF796B51B9F0383004144EA /* Main.storyboard */,
 				2FF796B81B9F0383004144EA /* Assets.xcassets */,
 				2FF796BA1B9F0383004144EA /* LaunchScreen.storyboard */,
 				2FF796BD1B9F0383004144EA /* Info.plist */,
+				2FF796D11B9F03CA004144EA /* Decimals-Bridging-Header.h */,
 			);
 			path = Decimals;
 			sourceTree = "<group>";
@@ -94,6 +120,24 @@
 				2FF796C81B9F0383004144EA /* Info.plist */,
 			);
 			path = DecimalsTests;
+			sourceTree = "<group>";
+		};
+		2FF796E81B9F0416004144EA /* decNumber */ = {
+			isa = PBXGroup;
+			children = (
+				2FF796DE1B9F03F9004144EA /* ICU-license.html */,
+				2FF796DF1B9F03F9004144EA /* readme.txt */,
+				2FF796D61B9F03F9004144EA /* decn.c */,
+				2FF796D41B9F03F9004144EA /* decContext.h */,
+				2FF796D21B9F03CA004144EA /* decContext.c */,
+				2FF796D81B9F03F9004144EA /* decNumber.h */,
+				2FF796D71B9F03F9004144EA /* decNumber.c */,
+				2FF796D91B9F03F9004144EA /* decnumber.pdf */,
+				2FF796DA1B9F03F9004144EA /* decNumberLocal.h */,
+				2FF796DC1B9F03F9004144EA /* decPacked.h */,
+				2FF796DB1B9F03F9004144EA /* decPacked.c */,
+			);
+			name = decNumber;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,6 +184,7 @@
 		2FF796A61B9F0382004144EA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Solinst Canada";
 				TargetAttributes = {
@@ -176,8 +221,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2FF796E71B9F03F9004144EA /* readme.txt in Resources */,
 				2FF796BC1B9F0383004144EA /* LaunchScreen.storyboard in Resources */,
+				2FF796E61B9F03F9004144EA /* ICU-license.html in Resources */,
 				2FF796B91B9F0383004144EA /* Assets.xcassets in Resources */,
+				2FF796E31B9F03F9004144EA /* decnumber.pdf in Resources */,
 				2FF796B71B9F0383004144EA /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -196,8 +244,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2FF796E41B9F03F9004144EA /* decPacked.c in Sources */,
+				2FF796D31B9F03CA004144EA /* decContext.c in Sources */,
+				2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */,
 				2FF796B41B9F0383004144EA /* ViewController.swift in Sources */,
+				2FF796E21B9F03F9004144EA /* decNumber.c in Sources */,
 				2FF796B21B9F0383004144EA /* AppDelegate.swift in Sources */,
+				2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,10 +379,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Decimals/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.Decimals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -337,10 +393,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Decimals/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.Decimals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
 			};
 			name = Release;
 		};
