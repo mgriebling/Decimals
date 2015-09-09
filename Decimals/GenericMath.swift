@@ -18,15 +18,42 @@ protocol RealOperations : Equatable, IntegerLiteralConvertible {
     init(_ int : Int)
 }
 
-extension NSDecimalNumber {
+public final class MyDecimal {
     
-    func sqr() -> NSDecimalNumber { return self.decimalNumberByMultiplyingBy(self) }
-    func sqrt() -> NSDecimalNumber { return self }
+    var n: NSDecimalNumber
+    
+    init(_ n: NSDecimalNumber) { self.n = n }
+    
+    public convenience required init(integerLiteral value: Int) { self.init(NSDecimalNumber(integer: value)) }
+    
+}
+
+extension MyDecimal : RealOperations {
+    
+    public convenience init (_ int: Int) { self.init(NSDecimalNumber(integer: int)) }
+    public func sqr() -> MyDecimal { return MyDecimal(n.decimalNumberByMultiplyingBy(n)) }
+    public func sqrt() -> MyDecimal { return self }
 
 }
 
-public func * (lhs: NSDecimalNumber, rhs: NSDecimalNumber) -> NSDecimalNumber {
-    return lhs.decimalNumberByMultiplyingBy(rhs)
+public func == (lhs: MyDecimal, rhs: MyDecimal) -> Bool {
+    return lhs.n.compare(rhs.n) == .OrderedSame
+}
+
+public func * (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
+    return MyDecimal(lhs.n.decimalNumberByMultiplyingBy(rhs.n))
+}
+
+public func / (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
+    return MyDecimal(lhs.n.decimalNumberByDividingBy(rhs.n))
+}
+
+public func + (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
+    return MyDecimal(lhs.n.decimalNumberByAdding(rhs.n))
+}
+
+public func - (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
+    return MyDecimal(lhs.n.decimalNumberBySubtracting(rhs.n))
 }
 
 //
