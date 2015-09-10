@@ -75,8 +75,13 @@ class ViewController: UIViewController {
 //        print("Math    pi = \(M_PI)")
         
         // compute sqrt
-        let sqrt2a = squareRoot(2)
+        let sqrt2a : MyDecimal = squareRoot(2)
+        print("sqrt(2) = \(Decimal(2).sqrt())")
         print("sqrt(2) = \(sqrt2a)")
+        
+        // compute pi
+        let pi2 : MyDecimal = computePi()
+        print("NSDecimal pi = \(pi2)")
     }
 
     override func didReceiveMemoryWarning() {

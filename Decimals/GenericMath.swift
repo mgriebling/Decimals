@@ -8,23 +8,33 @@
 
 import Foundation
 
-protocol RealOperations : Equatable, IntegerLiteralConvertible {
+protocol RealOperations : Comparable, IntegerLiteralConvertible {
     func sqrt() -> Self
     func + (_: Self, _: Self) -> Self
     func - (_: Self, _: Self) -> Self
     func * (_: Self, _: Self) -> Self
     func / (_: Self, _: Self) -> Self
     func sqr () -> Self
+    func abs () -> Self
+    var eps : Self { get }
     init(_ int : Int)
 }
 
-public final class MyDecimal {
+public final class MyDecimal : CustomStringConvertible {
     
     var n: NSDecimalNumber
     
+    public var description: String { return n.stringValue }
+    
     init(_ n: NSDecimalNumber) { self.n = n }
     
-    public convenience required init(integerLiteral value: Int) { self.init(NSDecimalNumber(integer: value)) }
+    convenience required public init(integerLiteral value: Int) { self.init(NSDecimalNumber(integer: value)) }
+    
+    var eps : MyDecimal {
+        let scale = NSDecimalNumber(mantissa: 1, exponent: 39, isNegative: false)  // 1x10^39 - 1/10 the number of digits
+        let leps = n.decimalNumberByDividingBy(scale)
+        return MyDecimal(leps)
+    }
     
 }
 
@@ -32,12 +42,17 @@ extension MyDecimal : RealOperations {
     
     public convenience init (_ int: Int) { self.init(NSDecimalNumber(integer: int)) }
     public func sqr() -> MyDecimal { return MyDecimal(n.decimalNumberByMultiplyingBy(n)) }
-    public func sqrt() -> MyDecimal { return self }
+    public func sqrt() -> MyDecimal { return squareRoot(self) }
+    public func abs() -> MyDecimal { return self < 0 ? 0 - self : self }
 
 }
 
 public func == (lhs: MyDecimal, rhs: MyDecimal) -> Bool {
     return lhs.n.compare(rhs.n) == .OrderedSame
+}
+
+public func < (lhs: MyDecimal, rhs: MyDecimal) -> Bool {
+    return lhs.n.compare(rhs.n) == .OrderedAscending
 }
 
 public func * (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
@@ -60,15 +75,15 @@ public func - (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
 // A generic algorithm to calculate a square root to any precision.
 //
 
-func squareRoot (a: Decimal) -> Decimal {
+func squareRoot<T:RealOperations>(a: T) -> T {
     if a == 0 { return a }
     
-    if a.isNegative {
+    if a < 0 {
         print("sqrt: Negative argument.")
         return 0
     }
     
-    let half = Decimal(1) / 2
+    let half = T(1) / 2
     var r = 1 / a
     let h = a * half
     
@@ -76,12 +91,12 @@ func squareRoot (a: Decimal) -> Decimal {
     var rold = r
     for i in 1...max_iter {
         rold = r
-        r += (half - h * r.sqr()) * r
-        print("Iteration \(i) : \(r*a)")
+        r = r + (half - h * r.sqr()) * r
+//        print("Iteration \(i) : \(r*a)")
         if (r - rold).abs() < 2*r.eps { break }
     }
     
-    r *= a
+    r = r * a
     return r
 }
 
@@ -102,7 +117,7 @@ func computePi<T:RealOperations>() -> T {
     m = 2
     
     p = 1 / a
-    print("Iteration  0: \(p)")
+//    print("Iteration  0: \(p)")
     
     for i in 1...max_iter {
         m *= 4
@@ -114,7 +129,7 @@ func computePi<T:RealOperations>() -> T {
         
         pold = p
         p = 1 / a
-        print("Iteration \(i) : \(p)")
+//        print("Iteration \(i) : \(p)")
         if p == pold { break }
     }
     
