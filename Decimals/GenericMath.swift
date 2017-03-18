@@ -8,12 +8,12 @@
 
 import Foundation
 
-protocol RealOperations : Comparable, IntegerLiteralConvertible {
+protocol RealOperations : Comparable, ExpressibleByIntegerLiteral {
     func sqrt() -> Self
-    func + (_: Self, _: Self) -> Self
-    func - (_: Self, _: Self) -> Self
-    func * (_: Self, _: Self) -> Self
-    func / (_: Self, _: Self) -> Self
+    static func + (_: Self, _: Self) -> Self
+    static func - (_: Self, _: Self) -> Self
+    static func * (_: Self, _: Self) -> Self
+    static func / (_: Self, _: Self) -> Self
     func sqr () -> Self
     func abs () -> Self
     var eps : Self { get }
@@ -28,11 +28,11 @@ public final class MyDecimal : CustomStringConvertible {
     
     init(_ n: NSDecimalNumber) { self.n = n }
     
-    convenience required public init(integerLiteral value: Int) { self.init(NSDecimalNumber(integer: value)) }
+    convenience required public init(integerLiteral value: Int) { self.init(NSDecimalNumber(value: value as Int)) }
     
     var eps : MyDecimal {
         let scale = NSDecimalNumber(mantissa: 1, exponent: 39, isNegative: false)  // 1x10^39 - 1/10 the number of digits
-        let leps = n.decimalNumberByDividingBy(scale)
+        let leps = n.dividing(by: scale)
         return MyDecimal(leps)
     }
     
@@ -40,42 +40,42 @@ public final class MyDecimal : CustomStringConvertible {
 
 extension MyDecimal : RealOperations {
     
-    public convenience init (_ int: Int) { self.init(NSDecimalNumber(integer: int)) }
-    public func sqr() -> MyDecimal { return MyDecimal(n.decimalNumberByMultiplyingBy(n)) }
+    public convenience init (_ int: Int) { self.init(NSDecimalNumber(value: int as Int)) }
+    public func sqr() -> MyDecimal { return MyDecimal(n.multiplying(by: n)) }
     public func sqrt() -> MyDecimal { return squareRoot(self) }
     public func abs() -> MyDecimal { return self < 0 ? 0 - self : self }
 
 }
 
 public func == (lhs: MyDecimal, rhs: MyDecimal) -> Bool {
-    return lhs.n.compare(rhs.n) == .OrderedSame
+    return lhs.n.compare(rhs.n) == .orderedSame
 }
 
 public func < (lhs: MyDecimal, rhs: MyDecimal) -> Bool {
-    return lhs.n.compare(rhs.n) == .OrderedAscending
+    return lhs.n.compare(rhs.n) == .orderedAscending
 }
 
 public func * (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
-    return MyDecimal(lhs.n.decimalNumberByMultiplyingBy(rhs.n))
+    return MyDecimal(lhs.n.multiplying(by: rhs.n))
 }
 
 public func / (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
-    return MyDecimal(lhs.n.decimalNumberByDividingBy(rhs.n))
+    return MyDecimal(lhs.n.dividing(by: rhs.n))
 }
 
 public func + (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
-    return MyDecimal(lhs.n.decimalNumberByAdding(rhs.n))
+    return MyDecimal(lhs.n.adding(rhs.n))
 }
 
 public func - (lhs: MyDecimal, rhs: MyDecimal) -> MyDecimal {
-    return MyDecimal(lhs.n.decimalNumberBySubtracting(rhs.n))
+    return MyDecimal(lhs.n.subtracting(rhs.n))
 }
 
 //
 // A generic algorithm to calculate a square root to any precision.
 //
 
-func squareRoot<T:RealOperations>(a: T) -> T {
+func squareRoot<T:RealOperations>(_ a: T) -> T {
     if a == 0 { return a }
     
     if a < 0 {
@@ -89,7 +89,7 @@ func squareRoot<T:RealOperations>(a: T) -> T {
     
     let max_iter = 20
     var rold = r
-    for i in 1...max_iter {
+    for _ in 1...max_iter {
         rold = r
         r = r + (half - h * r.sqr()) * r
 //        print("Iteration \(i) : \(r*a)")
@@ -119,7 +119,7 @@ func computePi<T:RealOperations>() -> T {
     p = 1 / a
 //    print("Iteration  0: \(p)")
     
-    for i in 1...max_iter {
+    for _ in 1...max_iter {
         m *= 4
         r = (1 - y.sqr().sqr()).sqrt().sqrt()
         y = (1 - r) / (1 + r)

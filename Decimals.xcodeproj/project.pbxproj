@@ -13,14 +13,14 @@
 		2FF796B91B9F0383004144EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796B81B9F0383004144EA /* Assets.xcassets */; };
 		2FF796BC1B9F0383004144EA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796BA1B9F0383004144EA /* LaunchScreen.storyboard */; };
 		2FF796C71B9F0383004144EA /* DecimalsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796C61B9F0383004144EA /* DecimalsTests.swift */; };
-		2FF796D31B9F03CA004144EA /* decContext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D21B9F03CA004144EA /* decContext.c */; settings = {ASSET_TAGS = (); }; };
-		2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D51B9F03F9004144EA /* Decimal.swift */; settings = {ASSET_TAGS = (); }; };
-		2FF796E21B9F03F9004144EA /* decNumber.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D71B9F03F9004144EA /* decNumber.c */; settings = {ASSET_TAGS = (); }; };
-		2FF796E31B9F03F9004144EA /* decnumber.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796D91B9F03F9004144EA /* decnumber.pdf */; settings = {ASSET_TAGS = (); }; };
-		2FF796E41B9F03F9004144EA /* decPacked.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DB1B9F03F9004144EA /* decPacked.c */; settings = {ASSET_TAGS = (); }; };
-		2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DD1B9F03F9004144EA /* GenericMath.swift */; settings = {ASSET_TAGS = (); }; };
-		2FF796E61B9F03F9004144EA /* ICU-license.html in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DE1B9F03F9004144EA /* ICU-license.html */; settings = {ASSET_TAGS = (); }; };
-		2FF796E71B9F03F9004144EA /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DF1B9F03F9004144EA /* readme.txt */; settings = {ASSET_TAGS = (); }; };
+		2FF796D31B9F03CA004144EA /* decContext.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D21B9F03CA004144EA /* decContext.c */; };
+		2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D51B9F03F9004144EA /* Decimal.swift */; };
+		2FF796E21B9F03F9004144EA /* decNumber.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D71B9F03F9004144EA /* decNumber.c */; };
+		2FF796E31B9F03F9004144EA /* decnumber.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796D91B9F03F9004144EA /* decnumber.pdf */; };
+		2FF796E41B9F03F9004144EA /* decPacked.c in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DB1B9F03F9004144EA /* decPacked.c */; };
+		2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DD1B9F03F9004144EA /* GenericMath.swift */; };
+		2FF796E61B9F03F9004144EA /* ICU-license.html in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DE1B9F03F9004144EA /* ICU-license.html */; };
+		2FF796E71B9F03F9004144EA /* readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796DF1B9F03F9004144EA /* readme.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -185,14 +185,16 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Solinst Canada";
 				TargetAttributes = {
 					2FF796AD1B9F0383004144EA = {
 						CreatedOnToolsVersion = 7.0;
+						LastSwiftMigration = 0820;
 					};
 					2FF796C11B9F0383004144EA = {
 						CreatedOnToolsVersion = 7.0;
+						LastSwiftMigration = 0820;
 						TestTargetID = 2FF796AD1B9F0383004144EA;
 					};
 				};
@@ -305,8 +307,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -350,8 +354,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -370,6 +376,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -386,6 +393,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -399,6 +407,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.Decimals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -410,6 +419,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.DecimalsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Decimals.app/Decimals";
 			};
 			name = Debug;
@@ -422,6 +432,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.DecimalsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Decimals.app/Decimals";
 			};
 			name = Release;
@@ -445,6 +456,7 @@
 				2FF796CD1B9F0383004144EA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2FF796CE1B9F0383004144EA /* Build configuration list for PBXNativeTarget "DecimalsTests" */ = {
 			isa = XCConfigurationList;
@@ -453,6 +465,7 @@
 				2FF796D01B9F0383004144EA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

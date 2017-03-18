@@ -55,12 +55,12 @@ class ViewController: UIViewController {
         
         // try encoding/decoding several numbers
         let dataStore = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWithMutableData: dataStore)
+        let archiver = NSKeyedArchiver(forWritingWith: dataStore)
         start.encodeWithCoder(archiver)
         rate.encodeWithCoder(archiver)
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWithData: dataStore)
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: dataStore as Data)
         let start2 = Decimal(coder: unarchiver)
         let rate2 = Decimal(coder: unarchiver)
         if start == start2 && rate == rate2 { print("Encoding/decoding success!") }
