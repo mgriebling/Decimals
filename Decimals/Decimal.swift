@@ -37,7 +37,7 @@ public struct Decimal {
     }
     
     static let maximumDigits = Int(DECNUMDIGITS)
-    static let nominalDigits = 34  // roughly number of decimal digits in 128 bits
+    static let nominalDigits = 38  // number of decimal digits in Apple's Decimal type
     static var context = decContext()
     fileprivate var decimal = decNumber()
     private static let errorFlags = UInt32(DEC_IEEE_754_Division_by_zero | DEC_IEEE_754_Overflow |
@@ -80,14 +80,51 @@ public struct Decimal {
     
     public init() { self.init(0) }    // default value is 0
     
+    public init(_ decimal : Decimal) { self.decimal = decimal.decimal }
+    
     public init(_ uint: UInt) {
-        initContext(digits: Decimal.nominalDigits)
-        decNumberFromUInt32(&decimal, UInt32(uint))
+        if uint <= UInt(UInt32.max) && uint >= UInt(UInt32.min)  {
+            initContext(digits: Decimal.nominalDigits)
+            decNumberFromUInt32(&decimal, UInt32(uint))
+        } else {
+            /* do this the long way */
+            let working = uint
+            var x = Decimal(0)
+            var n = working
+            var m = Decimal(1)
+            while n != 0 {
+                let r = n % 10
+                n /= 10
+                if r != 0 {
+                    x += Decimal(r) * m
+                }
+                m *= 10
+            }
+            decimal = x.decimal
+        }
     }
     
     public init(_ int: Int) {
-        initContext(digits: Decimal.nominalDigits)
-        decNumberFromInt32(&decimal, Int32(int))
+        /* small integers (32-bits) are directly convertible */
+        if int <= Int(Int32.max) && int >= Int(Int32.min)  {
+            initContext(digits: Decimal.nominalDigits)
+            decNumberFromInt32(&decimal, Int32(int))
+        } else if int == Int.min {
+            // tricky because Int can't represent -Int.min
+            let x = -Decimal(UInt(Int.max)+1)  // Int.max+1 = -Int.min
+            decimal = x.decimal
+        } else {
+            /* do this the long way */
+            var x = Decimal(UInt(Swift.abs(int)))
+            if int < 0 { x = -x }
+            decimal = x.decimal
+        }
+    }
+    
+    public init(_ decimal: Foundation.Decimal) {
+        // we cheat since this should be an uncommon thing to do
+        let numStr = decimal.description
+        self.init(numStr, digits: 38)  // Apple Decimals are 38 digits fixed
     }
     
     public init(_ s: String, digits: Int = Decimal.nominalDigits) {
@@ -109,37 +146,11 @@ public struct Decimal {
         decimal = d
     }
     
-    // MARK: - Archival Operations
-    
-    static var UInt8Type = "C".cString(using: String.Encoding.ascii)!
-    static var Int32Type = "l".cString(using: String.Encoding.ascii)!
-    
-    public init (coder: NSCoder) {
-        var scale : Int32 = 0
-        var size : Int32 = 0
-        coder.decodeValue(ofObjCType: &Decimal.Int32Type, at: &size)
-        coder.decodeValue(ofObjCType: &Decimal.Int32Type, at: &scale)
-        var bytes = [UInt8](repeating: 0, count: Int(size))
-        coder.decodeArray(ofObjCType: &Decimal.UInt8Type, count: Int(size), at: &bytes)
-        decPackedToNumber(&bytes, Int32(size), &scale, &decimal)
-    }
-    
-    public func encodeWithCoder(_ coder: NSCoder) {
-        var local = decimal
-        var scale : Int32 = 0
-        var size = decimal.digits/2+1
-        var bytes = [UInt8](repeating: 0, count: Int(size))
-        decPackedFromNumber(&bytes, size, &scale, &local)
-        coder.encodeValue(ofObjCType: &Decimal.Int32Type, at: &size)
-        coder.encodeValue(ofObjCType: &Decimal.Int32Type, at: &scale)
-        coder.encodeArray(ofObjCType: &Decimal.UInt8Type, count: Int(size), at: &bytes)
-    }
-    
     // MARK: - Accessor Operations 
     
     public var engineeringString : String {
         var cs = [CChar](repeating: 0, count: Int(decimal.digits+14))
-        var local = self.decimal
+        var local = decimal
         decNumberToEngString(&local, &cs)
         return String(cString: &cs)
     }
@@ -149,12 +160,12 @@ public struct Decimal {
     }
     
     public var int : Int {
-        var local = self.decimal
+        var local = decimal
         return Int(decNumberToInt32(&local, &Decimal.context))
     }
     
     public var uint : UInt {
-        var local = self.decimal
+        var local = decimal
         return UInt(decNumberToUInt32(&local, &Decimal.context))
     }
     
@@ -394,6 +405,29 @@ public struct Decimal {
     }
 }
 
+//
+// Add global support for abs().
+//
+
+extension Decimal : AbsoluteValuable {
+    
+    public static func abs (_ a: Decimal) -> Decimal {
+        return a.abs()
+    }
+    
+}
+
+extension Decimal : SignedNumber {
+    
+    static public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
+    static public prefix func - (a: Decimal) -> Decimal { return a.negate() }
+    
+}
+
+//
+// Support the print() command.
+//
+
 extension Decimal : CustomStringConvertible {
     
     public var description : String  {
@@ -404,6 +438,10 @@ extension Decimal : CustomStringConvertible {
     }
     
 }
+
+//
+// Comparison and equality operator definitions
+//
 
 extension Decimal : Comparable {
     
@@ -419,21 +457,52 @@ extension Decimal : Comparable {
         }
     }
     
+    static public func == (lhs: Decimal, rhs: Decimal) -> Bool {
+        return lhs.cmp(rhs) == .orderedSame
+    }
+    
+    static public func < (lhs: Decimal, rhs: Decimal) -> Bool {
+        return lhs.cmp(rhs) == .orderedAscending
+    }
+    
 }
 
-public func == (lhs: Decimal, rhs: Decimal) -> Bool {
-    return lhs.cmp(rhs) == .orderedSame
-}
-
-public func < (lhs: Decimal, rhs: Decimal) -> Bool {
-    return lhs.cmp(rhs) == .orderedAscending
-}
+//
+// Allows things like -> a : Decimal = 12345
+//
 
 extension Decimal : ExpressibleByIntegerLiteral {
 
     public init(integerLiteral value: Int) { self.init(value) }
     
 }
+
+//
+// Allows things like -> a : [Decimal] = [1.2, 3.4, 5.67]
+// Note: These conversions are not guaranteed to be exact.
+//
+
+extension Decimal : ExpressibleByFloatLiteral {
+    
+    public init(floatLiteral value: Double) { self.init(String(value)) }  // not exactly representable anyway so we cheat
+    
+}
+
+//
+// Allows things like -> a : Set<Decimal> = [12.4, 15, 100]
+//
+
+extension Decimal : Hashable {
+    
+    public var hashValue : Int {
+        return self.description.hashValue   // probably not very fast but not used much anyway
+    }
+    
+}
+
+//
+// Allows things like -> a : Decimal = "12345"
+//
 
 extension Decimal : ExpressibleByStringLiteral {
     
@@ -445,51 +514,94 @@ extension Decimal : ExpressibleByStringLiteral {
     
 }
 
+//
+// Convenience functions
+//
+
 extension Decimal : RealOperations {
     
     public func sqr() -> Decimal { return self * self }
+    public func ² () -> Decimal { return sqr() }
+    
+}
+
+extension Decimal {
+    
+    // MARK: - Archival Operations
+    
+    static var UInt8Type = "C".cString(using: String.Encoding.ascii)!
+    static var Int32Type = "l".cString(using: String.Encoding.ascii)!
+    
+    public init? (coder: NSCoder) {
+        var scale : Int32 = 0
+        var size : Int32 = 0
+        coder.decodeValue(ofObjCType: &Decimal.Int32Type, at: &size)
+        coder.decodeValue(ofObjCType: &Decimal.Int32Type, at: &scale)
+        var bytes = [UInt8](repeating: 0, count: Int(size))
+        coder.decodeArray(ofObjCType: &Decimal.UInt8Type, count: Int(size), at: &bytes)
+        decPackedToNumber(&bytes, Int32(size), &scale, &decimal)
+    }
+    
+    public func encode(with coder: NSCoder) {
+        var local = decimal
+        var scale : Int32 = 0
+        var size = decimal.digits/2+1
+        var bytes = [UInt8](repeating: 0, count: Int(size))
+        decPackedFromNumber(&bytes, size, &scale, &local)
+        coder.encodeValue(ofObjCType: &Decimal.Int32Type, at: &size)
+        coder.encodeValue(ofObjCType: &Decimal.Int32Type, at: &scale)
+        coder.encodeArray(ofObjCType: &Decimal.UInt8Type, count: Int(size), at: &bytes)
+    }
     
 }
 
 //
-// Mathematical operators
+// Declaration of the power (**) operator
 //
 
-public func % (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.remainder(rhs) }
-public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
-public func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
-public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
-public func / (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.div(rhs) }
-
-public prefix func - (a: Decimal) -> Decimal { return a.negate() }
-public postfix func -- (a: inout Decimal) { a = a - 1 }
-public func -= (a: inout Decimal, b: Decimal) { a = a - b }
-
-public prefix func + (a: Decimal) -> Decimal { return a }
-public postfix func ++ (a: inout Decimal) { a = a + 1 }
-public func += (a: inout Decimal, b: Decimal) { a = a + b }
-
-public func *= (a: inout Decimal, b: Decimal) { a = a * b }
-public func /= (a: inout Decimal, b: Decimal) { a = a / b }
-
-infix operator ** : ExponentPrecedence // { associativity left precedence 170 }
+infix operator ** : ExponentPrecedence
 precedencegroup ExponentPrecedence {
     associativity: left
     higherThan: MultiplicationPrecedence
 }
-public func ** (base: Decimal, power: Int) -> Decimal { return base ** Decimal(power) }
-public func ** (base: Int, power: Int) -> Decimal { return Decimal(base) ** power }
-public func ** (base: Decimal, power: Decimal) -> Decimal { return base.pow(power) }
 
 //
-// Logical operators
+// Mathematical operator definitions
 //
 
-public func & (a: Decimal, b: Decimal) -> Decimal { return a.and(b) }
-public func | (a: Decimal, b: Decimal) -> Decimal { return a.or(b) }
-public func ^ (a: Decimal, b: Decimal) -> Decimal { return a.xor(b) }
-public prefix func ~ (a: Decimal) -> Decimal { return a.not() }
-
-public func << (a: Decimal, b: Decimal) -> Decimal { return a.shift(b.abs()) }
-public func >> (a: Decimal, b: Decimal) -> Decimal { return a.shift(-b.abs()) }
+extension Decimal {
+    
+    static public func % (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.remainder(rhs) }
+    static public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
+    static public func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
+    static public func / (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.div(rhs) }
+    
+//    static public postfix func -- (a: inout Decimal) { a = a - 1 }   // Not in vogue with the Swift crowd
+    static public func -= (a: inout Decimal, b: Decimal) { a = a - b }
+    
+    static public prefix func + (a: Decimal) -> Decimal { return a }
+//    static public postfix func ++ (a: inout Decimal) { a = a + 1 }
+    static public func += (a: inout Decimal, b: Decimal) { a = a + b }
+    
+    static public func *= (a: inout Decimal, b: Decimal) { a = a * b }
+    static public func /= (a: inout Decimal, b: Decimal) { a = a / b }
+    static public func %= (a: inout Decimal, b: Decimal) { a = a % b }
+    
+    static public func ** (base: Decimal, power: Int) -> Decimal { return base ** Decimal(power) }
+//    static public func ** (base: Int, power: Int) -> Decimal { return Decimal(base) ** power }
+    static public func ** (base: Decimal, power: Decimal) -> Decimal { return base.pow(power) }
+    
+    //
+    // Logical operators
+    //
+    
+    static public func & (a: Decimal, b: Decimal) -> Decimal { return a.and(b) }
+    static public func | (a: Decimal, b: Decimal) -> Decimal { return a.or(b) }
+    static public func ^ (a: Decimal, b: Decimal) -> Decimal { return a.xor(b) }
+    static public prefix func ~ (a: Decimal) -> Decimal { return a.not() }
+    
+    static public func << (a: Decimal, b: Decimal) -> Decimal { return a.shift(b.abs()) }
+    static public func >> (a: Decimal, b: Decimal) -> Decimal { return a.shift(-b.abs()) }
+    
+}
 

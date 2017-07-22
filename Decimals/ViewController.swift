@@ -20,6 +20,32 @@ class ViewController: UIViewController {
         let b = Decimal("10.9876")
         print("\(a) + \(b) = \(a + b)")
         
+        // Hashable test
+        let c : Set<Decimal> = [1.2345, 1, 10]
+        print("Set = \(c)")
+        
+        // AbsoluteValuable test
+        let d = Decimal("-1.23456")
+        print("abs(-1.23456) = \(abs(d))")
+        
+        // Create Apple Decimal and convert to our Decimal
+        let oldDigits = Decimal.digits
+        Decimal.digits = 100
+        let e = Foundation.Decimal(string: "12345678901234567890.123456789012")!
+        let f = Decimal(e)
+        print("Apple Decimal (y) = \(e) and y² = \(e*e)")
+        print("Our Decimal   (x) = \(f) and x² = \(f*f)")
+        print("BCD version = \(f.bcd)")
+        Decimal.digits = oldDigits
+        
+        // Test initialization from very large integers
+        let g = Decimal(Int.max)
+        print("Int.max = \(Int.max); Decimal version = \(g)")
+        let i = Decimal(Int.min)
+        print("Int.min = \(Int.min); Decimal version = \(i)")
+        let h = Decimal(UInt.max)
+        print("UInt.max = \(UInt.max); Decimal version = \(h)")
+        
         // compound interest example
         let years = 20
         let interest = Decimal("6.5") // %
@@ -56,8 +82,8 @@ class ViewController: UIViewController {
         // try encoding/decoding several numbers
         let dataStore = NSMutableData()
         let archiver = NSKeyedArchiver(forWritingWith: dataStore)
-        start.encodeWithCoder(archiver)
-        rate.encodeWithCoder(archiver)
+        start.encode(with: archiver)
+        rate.encode(with: archiver)
         archiver.finishEncoding()
         
         let unarchiver = NSKeyedUnarchiver(forReadingWith: dataStore as Data)
