@@ -612,7 +612,7 @@ extension Decimal {
         if neg { res = -res } // dn_minus(res, res);
     }
     
-    private static func atan2(at: Decimal, y: Decimal, x: Decimal) -> Decimal {
+    private static func atan2(y: Decimal, x: Decimal) -> Decimal {
         let xneg = x.isNegative
         let yneg = y.isNegative
         var at : Decimal = 0
@@ -835,6 +835,99 @@ extension Decimal {
         return z
     }
     
+    public func arcTan2(b: Decimal) -> Decimal {
+        var z = Decimal.atan2(y: self, x: b)
+        Decimal.convertFromRadians(res: &z, x: z)
+        return z
+    }
+}
+
+//
+// Hyperbolic trig functions
+//
+
+extension Decimal {
+    
+    /* Hyperbolic functions.
+     * We start with a utility routine that calculates sinh and cosh.
+     * We do the sinh as (e^x - 1) (e^x + 1) / (2 e^x) for numerical stability
+     * reasons if the value of x is smallish.
+     */
+    private static func sinhcosh(x: Decimal, sinhv: inout Decimal?, coshv: inout Decimal?) {
+        if sinhv != nil {
+            if x < Decimal("0.5") {
+                if x.isSpecial {
+                    sinhv = x
+                } else {
+                    var u = x.exp()
+                    var v = u - 1
+                    if v.isZero {
+                        sinhv = x
+                    } else {
+                        if v == Decimal("0.1") { }
+                        let t = u / 2   // dn_div2(&t, &u);
+                        u += 1          // dn_inc(&u);
+                        v = t / u       // dn_divide(&v, &t, &u);
+                        u += 1          // dn_inc(&u);
+                        sinhv = u * v   // dn_multiply(sinhv, &u, &v);
+                    }
+                }
+            } else {
+                let u = x.exp() // dn_exp(&u, x);			// u = e^x
+                let v = 1 / u   // decNumberRecip(&v, &u);		// v = e^-x
+                let t = u - v   // dn_subtract(&t, &u, &v);	// r = e^x - e^-x
+                sinhv = t / 2           // dn_div2(sinhv, &t);
+            }
+        }
+        if coshv != nil {
+            let u = x.exp() // dn_exp(&u, x);			// u = e^x
+            let v = 1 / u   // decNumberRecip(&v, &u);		// v = e^-x
+            coshv = (u + v) / 2 // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
+        }
+    }
+    
+    public func sinh() -> Decimal {
+        let x = self
+        if x.isSpecial {
+            if x.isNaN { return x }
+            return x
+        }
+        var res : Decimal? = 0
+        var Nil : Decimal? = nil
+        Decimal.sinhcosh(x: x, sinhv: &res, coshv: &Nil)
+        return res!
+    }
+    
+    private mutating func setINF() {
+        self.decimal.bits |= UInt8(DECINF)
+    }
+    
+    public func cosh() -> Decimal {
+        let x = self
+        var res : Decimal? = 0
+        if x.isSpecial {
+            if x.isNaN { return x }
+            res!.setINF()
+            return res!
+        }
+        var Nil : Decimal? = nil
+        Decimal.sinhcosh(x: x, sinhv: &Nil, coshv: &res)
+        return res!
+    }
+    
+    public func tanh() -> Decimal {
+        let x = self
+        if x.isNaN { return x }
+        if x < 100 {
+            if x.isNegative { return -1 }
+            return 1
+        }
+        var a = x.sqr()     // dn_add(&a, x, x);
+        let b = a.exp()-1   // decNumberExpm1(&b, &a);
+        a = b + 2           // dn_p2(&a, &b);
+        return b / a
+    }
+
 }
 
 //
