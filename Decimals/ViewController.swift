@@ -33,8 +33,9 @@ class ViewController: UIViewController {
         Decimal.digits = 100
         let e = Foundation.Decimal(string: "12345678901234567890.123456789012")!
         let f = Decimal(e)
+        let f² = f.²
         print("Apple Decimal (y) = \(e) and y² = \(e*e)")
-        print("Our Decimal   (x) = \(f) and x² = \(f*f)")
+        print("Our Decimal   (x) = \(f) and x² = \(f²)")
         print("BCD version = \(f.bcd)")
         Decimal.digits = oldDigits
         
@@ -46,8 +47,12 @@ class ViewController: UIViewController {
         let h = Decimal(UInt.max)
         print("UInt.max = \(UInt.max); Decimal version = \(h)")
         
+        // Some math functions
+        let a1 : Decimal = 2 ** 100
+        print("2 ** 100 = \(a1)")
+        
         // compound interest example
-        let years = 20
+        let years = Decimal(20)
         let interest = Decimal("6.5") // %
         let start = Decimal(100_000)
         var rate : Decimal
@@ -55,7 +60,7 @@ class ViewController: UIViewController {
             print("Illegal input variables")
         }
         rate = interest / 100 + 1   // rate = rate/100 + 1
-        rate = rate ** years        // rate = rate ** years
+        rate **= years              // rate = rate ** years
         let error = Decimal.errorString
         if error.isEmpty {
             print("$\(start) at \(interest)% for \(years) years => $\((rate * start).round(-2))")
@@ -114,7 +119,6 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
 
 }
 

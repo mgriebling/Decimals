@@ -3,7 +3,7 @@
 //  TestDecimals
 //
 //  Created by Mike Griebling on 4 Sep 2015.
-//  Copyright © 2015 Computer Inspirations. All rights reserved.
+//  Copyright © 2015-2017 Computer Inspirations. All rights reserved.
 //
 //  Notes: The maximum decimal number size is currently hard-limited to 120 digits
 //  via DECNUMDIGITS.  The number of digits per exponent is fixed at six to allow
@@ -36,10 +36,20 @@ public struct Decimal {
         }
     }
     
+    public enum AngularMeasure {
+        case radians, degrees, gradians
+    }
+    
+    // Class properties
     static let maximumDigits = Int(DECNUMDIGITS)
     static let nominalDigits = 38  // number of decimal digits in Apple's Decimal type
     static var context = decContext()
+    static var defaultAngularMeasure = AngularMeasure.radians
+    
+    // Internal number representation
     fileprivate var decimal = decNumber()
+    fileprivate var angularMeasure = Decimal.defaultAngularMeasure
+    
     private static let errorFlags = UInt32(DEC_IEEE_754_Division_by_zero | DEC_IEEE_754_Overflow |
         DEC_IEEE_754_Underflow | DEC_Conversion_syntax | DEC_Division_impossible |
         DEC_Division_undefined | DEC_Insufficient_storage | DEC_Invalid_context | DEC_Invalid_operation)
@@ -53,6 +63,17 @@ public struct Decimal {
 //            Decimal.context.round = Round.HalfUp.crounding    // default if not specified
         }
     }
+    
+    // MARK: - Internal Constants
+    
+    public static let pi = Decimal(
+        "3.141592653589793238462643383279502884197169399375105820974944592307816406286" +
+        "208998628034825342117067982148086513282306647093844609550582231725359408128481" +
+        "117450284102701938521105559644622948954930381964428810975665933446128475648233" +
+        "786783165271201909145648566923460348610454326648213393607260249141273724587006", digits: maximumDigits)
+    public static let π = pi
+    fileprivate static let _2pi = 2 * pi
+    public static let radix = 10
     
     // MARK: - Status Methods
     
@@ -93,11 +114,8 @@ public struct Decimal {
             var n = working
             var m = Decimal(1)
             while n != 0 {
-                let r = n % 10
-                n /= 10
-                if r != 0 {
-                    x += Decimal(r) * m
-                }
+                let r = n % 10; n /= 10
+                if r != 0 { x += m * Decimal(r) }
                 m *= 10
             }
             decimal = x.decimal
@@ -161,17 +179,31 @@ public struct Decimal {
     
     public var int : Int {
         var local = decimal
-        return Int(decNumberToInt32(&local, &Decimal.context))
+        if self <= Decimal(Int(Int32.max)) && self >= Decimal(Int(Int32.min)) {
+            return Int(decNumberToInt32(&local, &Decimal.context))
+        } else if self < Decimal(Int.min) {
+            return Int.min
+        } else if self > Decimal(Int.max) {
+            return Int.max
+        } else {
+            return Int(description) ?? 0
+        }
     }
     
     public var uint : UInt {
         var local = decimal
-        return UInt(decNumberToUInt32(&local, &Decimal.context))
+        if self <= Decimal(UInt(UInt32.max)) {
+            return UInt(decNumberToUInt32(&local, &Decimal.context))
+        } else if self > Decimal(UInt.max) {
+            return UInt.max
+        } else {
+            return UInt(description) ?? 0
+        }
     }
     
     /// Returns the type of number (e.g., "NaN", "+Normal", etc.)
     public var numberClass : String {
-        var a = self.decimal
+        var a = decimal
         let cs = decNumberClassToString(decNumberClass(&a, &Decimal.context))
         return String(cString: cs!)
     }
@@ -185,7 +217,7 @@ public struct Decimal {
         return result
     }
     
-    public var scale : Int { return Int(decimal.exponent) }
+    public var exponent : Int { return Int(decimal.exponent) }
     public var eps : Decimal {
         var local = decimal
         var result = decNumber()
@@ -201,6 +233,7 @@ public struct Decimal {
     public var isNegative: Bool  { return decimal.bits & UInt8(DECNEG) != 0 }
     public var isZero: Bool      { return isFinite && decimal.digits == 1 && decimal.lsu.0 == 0 }
     public var isSubnormal: Bool { var n = decimal; return decNumberIsSubnormal(&n, &Decimal.context) == 1 }
+    public var isSpecial: Bool   { return decimal.bits & DECSPECIAL != 0 }
     public var isInteger: Bool {
         var local = decimal
         decNumberToIntegralExact(&local, &local, &Decimal.context)
@@ -222,7 +255,7 @@ public struct Decimal {
     
     /// Removes all trailing zeros without changing the value of the number.
     public func normalize () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberNormalize(&a, &a, &Decimal.context)
         return Decimal(a)
     }
@@ -230,83 +263,92 @@ public struct Decimal {
     /// Converts the number to an integer representation without any fractional digits.
     /// The active rounding mode is used during this conversion.
     public func integer () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberToIntegralValue(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func remainder (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberRemainder(&a, &a,  &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func negate () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberMinus(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func max (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberMax(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func min (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberMin(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func abs () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberAbs(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func add (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberAdd(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func sub (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberSubtract(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func mul (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberMultiply(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func div (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberDivide(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func idiv (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberDivideInteger(&a, &a, &b.decimal, &Decimal.context)
+        return Decimal(a)
+    }
+    
+    /// Returns *self* × *b* + *c* or multiply accumulate with only the final rounding.
+    public func mulAcc (_ b: Decimal, c: Decimal) -> Decimal {
+        var b = b
+        var c = c
+        var a = decimal
+        decNumberFMA(&a, &a, &b.decimal, &c.decimal, &Decimal.context)
         return Decimal(a)
     }
 
     /// Rounds to *digits* places where negative values limit the decimal places
     /// and positive values limit the number to multiples of 10 ** digits.
     public func round (_ digits: Int) -> Decimal {
-        var a = self.decimal
+        var a = decimal
         var b = Decimal(digits)
         decNumberRescale(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
@@ -316,46 +358,39 @@ public struct Decimal {
     
     public func pow (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberPower(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func exp () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberExp(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     /// Natural logarithm
     public func log () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberLn(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func log10 () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberLog10(&a, &a, &Decimal.context)
-        return Decimal(a)
-    }
-    
-    /// Base 10 or binary logarithm
-    public func logB () -> Decimal {
-        var a = self.decimal
-        decNumberLogB(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     /// Returns self * 10 ** b
     public func scaleB (_ b: Decimal) -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberLogB(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func sqrt () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberSquareRoot(&a, &a, &Decimal.context)
         return Decimal(a)
     }
@@ -365,44 +400,441 @@ public struct Decimal {
     
     public func or (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberOr(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func and (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberAnd(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func xor (_ b: Decimal) -> Decimal {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberXor(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func not () -> Decimal {
-        var a = self.decimal
+        var a = decimal
         decNumberInvert(&a, &a, &Decimal.context)
         return Decimal(a)
     }
     
     public func shift (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = self.decimal
+        var a = decimal
         decNumberShift(&a, &a, &bits.decimal, &Decimal.context)
         return Decimal(a)
     }
     
     public func rotate (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = self.decimal
+        var a = decimal
         decNumberRotate(&a, &a, &bits.decimal, &Decimal.context)
         return Decimal(a)
     }
+}
+
+//
+// Trigonometric functions
+//
+
+extension Decimal {
+    
+    public static var SINCOS_DIGITS : Int { return 51 }
+    
+    /* Check for right angle multiples and if exact, return the apropriate
+     * quadrant constant directly.
+     */
+    private static func rightAngle(res: inout Decimal, x: Decimal, quad: Decimal, r0: Decimal, r1: Decimal, r2: Decimal, r3: Decimal) -> Bool {
+        var r = x % quad // decNumberRemainder(&r, x, quad, &Ctx);
+        if r.isZero { return false }
+        if x.isZero {
+            res = r0
+        } else {
+            r = quad + quad // dn_add(&r, quad, quad); dn_compare(&r, &r, x);
+            if r == x {
+                res = r2
+            } else if r.isNegative {
+                res = r3
+            } else {
+                res = r1
+            }
+        }
+        return true
+    }
+    
+    private static func convertToRadians (res: inout Decimal, x: Decimal, r0: Decimal, r1: Decimal, r2: Decimal, r3: Decimal) -> Bool {
+        let circle, right : Decimal
+        switch x.angularMeasure {
+        case .radians:  res = x % _2pi; return true // no conversion needed - just reduce the range
+        case .degrees:  circle = 360; right = 90
+        case .gradians: circle = 400; right = 100
+        }
+        var fm = x % circle
+        if fm.isNegative { fm += circle }
+        if rightAngle(res: &res, x: fm, quad: right, r0: r0, r1: r1, r2: r2, r3: r3) { return false }
+        res = fm * Decimal._2pi / circle
+        return true
+    }
+    
+    private static func convertFromRadians (res: inout Decimal, x: Decimal) {
+        let circle: Decimal
+        switch x.angularMeasure {
+        case .radians:  res = x; return    // no conversion needed
+        case .degrees:  circle = 360
+        case .gradians: circle = 400
+        }
+        res = x * circle / Decimal._2pi
+    }
+    
+    private static func sincosTaylor(_ a : Decimal, sout: inout Decimal?, cout: inout Decimal?) {
+        var a2, t, j, z, s, c : Decimal
+        let digits = Decimal.digits
+        Decimal.digits = SINCOS_DIGITS
+        
+        a2 = a.sqr()  // dn_multiply(&a2.n, a, a);
+        j = 1         // dn_1(&j.n);
+        t = 1         // dn_1(&t.n);
+        s = 1         // dn_1(&s.n);
+        c = 1         // dn_1(&c.n);
+        
+        var fins = sout == nil
+        var finc = cout == nil
+        for i in 1..<1000 where !(fins && finc) {
+            let odd = (i & 1) != 0
+            
+            j += 1          // dn_inc(&j.n);
+            z = a2 / j      // dn_divide(&z.n, &a2.n, &j.n);
+            t *= z          // dn_multiply(&t.n, &t.n, &z.n);
+            if !finc {
+                z = c       // decNumberCopy(&z.n, &c.n);
+                if odd {
+                    c -= t  // dn_subtract(&c.n, &c.n, &t.n);
+                } else {
+                    c += t  // dn_add(&c.n, &c.n, &t.n);
+                }
+                if c == z { finc = true }
+            }
+            
+            j += 1          // dn_inc(&j.n);
+            t /= j          // dn_divide(&t.n, &t.n, &j.n);
+            if !fins {
+                z = s       // decNumberCopy(&z.n, &s.n);
+                if odd {
+                    s -= t  // dn_subtract(&s.n, &s.n, &t.n);
+                } else {
+                    s += t  // dn_add(&s.n, &s.n, &t.n);
+                }
+                if s == z { fins = true }
+            }
+        }
+        
+        // round to the required number of digits
+        Decimal.digits = digits
+        if sout != nil {
+            sout = s * a    // dn_multiply(sout, &s.n, a);
+        }
+        if cout != nil {
+            cout = c + 0    // dn_plus(cout, &c.n);
+        }
+    }
+    
+    private static func atan(res: inout Decimal, x: Decimal) {
+        var a, b, a2, t, j, z, last : Decimal
+        var doubles = 0
+        let neg = x.isNegative
+        
+        // arrange for a >= 0
+        if neg {
+            a = -x  // dn_minus(&a, x);
+        } else {
+            a = x   // decNumberCopy(&a, x);
+        }
+        
+        // reduce range to 0 <= a < 1, using atan(x) = pi/2 - atan(1/x)
+        let invert = a > 1
+        if invert { a = 1 / a } // dn_divide(&a, &const_1, &a);
+        
+        // Range reduce to small enough limit to use taylor series
+        // using:
+        //  tan(x/2) = tan(x)/(1+sqrt(1+tan(x)^2))
+        for _ in 0..<1000 {
+            if a <= Decimal("0.1") { break }
+            doubles += 1
+            // a = a/(1+sqrt(1+a^2)) -- at most 3 iterations.
+            b = a.sqr()     // dn_multiply(&b, &a, &a);
+            b += 1          // dn_inc(&b);
+            b = b.sqrt()    // dn_sqrt(&b, &b);
+            b += 1          // dn_inc(&b);
+            a /= b          // dn_divide(&a, &a, &b);
+        }
+        
+        // Now Taylor series
+        // tan(x) = x(1-x^2/3+x^4/5-x^6/7...)
+        // We calculate pairs of terms and stop when the estimate doesn't change
+        res = 3         // , &const_3);
+        j = 5           // decNumberCopy(&j, &const_5);
+        a2 = a.sqr()    // dn_multiply(&a2, &a, &a);	// a^2
+        t = a2          // decNumberCopy(&t, &a2);
+        res = t / res   // dn_divide(res, &t, res);	// s = 1-t/3 -- first two terms
+        res = 1 - res   // dn_1m(res, res);
+        
+        repeat {	// Loop until there is no digits changed
+            last = res
+            
+            t *= a2     // dn_multiply(&t, &t, &a2);
+            z = t / j   // dn_divide(&z, &t, &j);
+            res += z    // dn_add(res, res, &z);
+            j += 2      // dn_p2(&j, &j);
+            
+            t *= a2     // dn_multiply(&t, &t, &a2);
+            z = t / j   // dn_divide(&z, &t, &j);
+            res += z    // dn_subtract(res, res, &z);
+            j += 2      // dn_p2(&j, &j);
+        } while res != last
+        res *= a        // dn_multiply(res, res, &a);
+        
+        while doubles > 0 {
+            res += res      // dn_add(res, res, res);
+            doubles -= 1
+        }
+        
+        if invert {
+            res = Decimal.pi/2 - res // dn_subtract(res, &const_PIon2, res);
+        }
+        
+        if neg { res = -res } // dn_minus(res, res);
+    }
+    
+    private static func atan2(at: Decimal, y: Decimal, x: Decimal) -> Decimal {
+        let xneg = x.isNegative
+        let yneg = y.isNegative
+        var at : Decimal = 0
+        
+        if x.isNaN || y.isNaN { at.setNAN(); return at }
+        if y.isZero {
+            if yneg {
+                if x.isZero {
+                    if xneg {
+                        at = -Decimal.pi
+                    } else {
+                        at = y
+                    }
+                } else if xneg {
+                    at = -Decimal.pi //decNumberPI(at);
+                } else {
+                    at = y  // decNumberCopy(at, y);
+                }
+            } else {
+                if x.isZero {
+                    if xneg {
+                        at = Decimal.pi // decNumberPI(at);
+                    } else {
+                        at = 0      // decNumberZero(at);
+                    }
+                } else if xneg {
+                    at = Decimal.pi // decNumberPI(at);
+                } else {
+                    at = 0      // decNumberZero(at);
+                }
+            }
+            return at
+        }
+        if x.isZero  {
+            at = Decimal.pi/2 // decNumberPIon2(at);
+            if yneg { at = -at } //  dn_minus(at, at);
+            return at
+        }
+        if x.isInfinite {
+            if xneg {
+                if y.isInfinite {
+                    at = Decimal.pi * Decimal("0.75")  // decNumberPI(&t);
+                    // dn_multiply(at, &t, &const_0_75);
+                    if yneg { at = -at } // dn_minus(at, at);
+                } else {
+                    at = Decimal.pi // decNumberPI(at);
+                    if yneg { at = -at } // dn_minus(at, at);
+                }
+            } else {
+                if y.isInfinite {
+                    at = Decimal.pi/4    // decNumberPIon2(&t);
+                    if yneg { at = -at } // dn_minus(at, at);
+                } else {
+                    at = 0               // decNumberZero(at);
+                    if yneg { at = -at } // dn_minus(at, at);
+                }
+            }
+            return at
+        }
+        if y.isInfinite  {
+            at = Decimal.pi/2    // decNumberPIon2(at);
+            if yneg { at = -at } //  dn_minus(at, at);
+            return at
+        }
+        
+        var t = y / x       // dn_divide(&t, y, x);
+        var r : Decimal = 0
+        Decimal.atan(res: &r, x: t) // do_atan(&r, &t);
+        if xneg {
+            t = Decimal.pi // decNumberPI(&t);
+            if yneg { t = -t } // dn_minus(&t, &t);
+        } else {
+            t = 0 // decNumberZero(&t);
+        }
+        at = r + t  // dn_add(at, &r, &t);
+        if at.isZero && yneg { at = -at } //  dn_minus(at, at);
+        return at
+    }
+    
+    private static func asin(res: inout Decimal, x: Decimal) {
+        if x.isNaN { res.setNAN(); return }
+        
+        var abx = x.abs() //dn_abs(&abx, x);
+        if abx > 1 { res.setNAN(); return }
+        
+        // res = 2*atan(x/(1+sqrt(1-x*x)))
+        var z = x.sqr() // dn_multiply(&z, x, x);
+        z = 1 - z       // dn_1m(&z, &z);
+        z = z.sqrt()    // dn_sqrt(&z, &z);
+        z += 1          // dn_inc(&z);
+        z = x / z       // dn_divide(&z, x, &z);
+        Decimal.atan(res: &abx, x: z) // do_atan(&abx, &z);
+        res = 2 * abx   // dn_mul2(res, &abx);
+    }
+    
+    private static func acos(res: inout Decimal, x: Decimal) {
+        if x.isNaN { res.setNAN(); return }
+        
+        var abx = x.abs() //dn_abs(&abx, x);
+        if abx > 1 { res.setNAN(); return }
+        
+        // res = 2*atan((1-x)/sqrt(1-x*x))
+        if x == 1 {
+            res = 0
+        } else {
+            var z = x.sqr() // dn_multiply(&z, x, x);
+            z = 1 - z       // dn_1m(&z, &z);
+            z = z.sqrt()    // dn_sqrt(&z, &z);
+            abx = 1 - x     // dn_1m(&abx, x);
+            z = abx / z     // dn_divide(&z, &abx, &z);
+            Decimal.atan(res: &abx, x: z) // do_atan(&abx, &z);
+            res = 2 * abx   // dn_mul2(res, &abx);
+        }
+    }
+    
+    private mutating func setNAN() {
+        self.decimal.bits |= UInt8(DECNAN)
+    }
+    
+    /* Calculate sin and cos of the given number in radians.
+     * We need to do some range reduction to guarantee that our Taylor series
+     * converges rapidly.
+     */
+    public func sinCos(sinv : inout Decimal?, cosv : inout Decimal?) {
+        let v = self
+        if v.isSpecial { // (decNumberIsSpecial(v)) {
+            sinv?.setNAN(); cosv?.setNAN()
+        } else {
+            let x = v % Decimal._2pi  // decNumberMod(&x, v, &const_2PI);
+            Decimal.sincosTaylor(x, sout: &sinv, cout: &cosv)  // sincosTaylor(&x, sinv, cosv);
+        }
+    }
+    
+    public func sin() -> Decimal {
+        let x = self
+        var x2 : Decimal = 0
+        var res : Decimal? = 0
+        
+        if x.isSpecial {
+            res!.setNAN()
+        } else {
+            if Decimal.convertToRadians(res: &x2, x: x, r0: 0, r1: 1, r2: 0, r3: 1) {
+                var Nil : Decimal? = nil
+                Decimal.sincosTaylor(x2, sout: &res, cout: &Nil)  // sincosTaylor(&x2, res, NULL);
+            } else {
+                res = x2  // decNumberCopy(res, &x2);
+            }
+        }
+        return res!
+    }
+    
+    public func cos() -> Decimal {
+        let x = self
+        var x2 : Decimal = 0
+        var res : Decimal? = 0
+        
+        if x.isSpecial {
+            res!.setNAN()
+        } else {
+            if Decimal.convertToRadians(res: &x2, x: x, r0:1, r1:0, r2:1, r3:0) {
+                var Nil : Decimal? = nil
+                Decimal.sincosTaylor(x2, sout: &Nil, cout: &res)
+            } else {
+                res = x2  // decNumberCopy(res, &x2);
+            }
+        }
+        return res!
+    }
+    
+    public func tan() -> Decimal {
+        let x = self
+        var x2 : Decimal = 0
+        var res : Decimal? = 0
+        var NaN : Decimal { var x = Decimal(0); x.setNAN(); return x }
+        
+        if x.isSpecial {
+            res!.setNAN()
+        } else {
+            let digits = Decimal.digits
+            Decimal.digits = Decimal.SINCOS_DIGITS
+            if Decimal.convertToRadians(res: &x2, x: x, r0:0, r1:NaN, r2:0, r3:NaN) {
+                var s, c : Decimal?
+                Decimal.sincosTaylor(x2, sout: &s, cout: &c)
+                x2 = s! / c!  // dn_divide(&x2.n, &s.n, &c.n);
+            }
+            Decimal.digits = digits
+            res = x2 + 0 // dn_plus(res, &x2.n);
+        }
+        return res!
+    }
+    
+    public func arcSin() -> Decimal {
+        var res : Decimal = 0
+        Decimal.asin(res: &res, x: self)
+        Decimal.convertFromRadians(res: &res, x: res)
+        return res
+    }
+    
+    public func arcCos() -> Decimal {
+        var res : Decimal = 0
+        Decimal.acos(res: &res, x: self)
+        Decimal.convertFromRadians(res: &res, x: res)
+        return res
+    }
+    
+    public func arcTan() -> Decimal {
+        let x = self
+        var z : Decimal = 0
+        if x.isSpecial {
+            if x.isNaN {
+                return x
+            } else {
+                z = Decimal.pi/2
+                if x.isNegative { z = -z }
+            }
+        } else {
+            Decimal.atan(res: &z, x: x)
+        }
+        Decimal.convertFromRadians(res: &z, x: z)
+        return z
+    }
+    
 }
 
 //
@@ -416,6 +848,10 @@ extension Decimal : AbsoluteValuable {
     }
     
 }
+
+//
+// Support the SignedNumber protocol.
+//
 
 extension Decimal : SignedNumber {
     
@@ -432,7 +868,7 @@ extension Decimal : CustomStringConvertible {
     
     public var description : String  {
         var cs = [CChar](repeating: 0, count: Int(decimal.digits+14))
-        var local = self.decimal
+        var local = decimal
         decNumberToString(&local, &cs)
         return String(cString: &cs)
     }
@@ -447,7 +883,7 @@ extension Decimal : Comparable {
     
     public func cmp (_ b: Decimal) -> ComparisonResult {
         var b = b
-        var a = self.decimal
+        var a = decimal
         decNumberCompare(&a, &a, &b.decimal, &Decimal.context)
         let ai = decNumberToInt32(&a, &Decimal.context)
         switch ai {
@@ -495,7 +931,7 @@ extension Decimal : ExpressibleByFloatLiteral {
 extension Decimal : Hashable {
     
     public var hashValue : Int {
-        return self.description.hashValue   // probably not very fast but not used much anyway
+        return description.hashValue   // probably not very fast but not used much anyway
     }
     
 }
@@ -521,7 +957,21 @@ extension Decimal : ExpressibleByStringLiteral {
 extension Decimal : RealOperations {
     
     public func sqr() -> Decimal { return self * self }
-    public func ² () -> Decimal { return sqr() }
+    public var ² : Decimal { return sqr() }
+    
+}
+
+extension Decimal : Strideable {
+    
+    public typealias Stride = Decimal
+    
+    public func advanced(by stride: Stride) -> Decimal {
+        return self+stride
+    }
+    
+    public func distance(to x: Decimal) -> Stride {
+        return Decimal.abs(self-x)
+    }
     
 }
 
@@ -560,10 +1010,13 @@ extension Decimal {
 //
 
 infix operator ** : ExponentPrecedence
+infix operator **= : ExponentPrecedence
 precedencegroup ExponentPrecedence {
     associativity: left
     higherThan: MultiplicationPrecedence
 }
+
+infix operator *+ : MultiplicationPrecedence
 
 //
 // Mathematical operator definitions
@@ -575,20 +1028,17 @@ extension Decimal {
     static public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
     static public func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
     static public func / (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.div(rhs) }
-    
-//    static public postfix func -- (a: inout Decimal) { a = a - 1 }   // Not in vogue with the Swift crowd
-    static public func -= (a: inout Decimal, b: Decimal) { a = a - b }
-    
     static public prefix func + (a: Decimal) -> Decimal { return a }
-//    static public postfix func ++ (a: inout Decimal) { a = a + 1 }
-    static public func += (a: inout Decimal, b: Decimal) { a = a + b }
     
+    static public func -= (a: inout Decimal, b: Decimal) { a = a - b }
+    static public func += (a: inout Decimal, b: Decimal) { a = a + b }
     static public func *= (a: inout Decimal, b: Decimal) { a = a * b }
     static public func /= (a: inout Decimal, b: Decimal) { a = a / b }
     static public func %= (a: inout Decimal, b: Decimal) { a = a % b }
+    static public func **= (a: inout Decimal, b: Decimal) { a = a ** b }
     
     static public func ** (base: Decimal, power: Int) -> Decimal { return base ** Decimal(power) }
-//    static public func ** (base: Int, power: Int) -> Decimal { return Decimal(base) ** power }
+    static public func ** (base: Int, power: Decimal) -> Decimal { return Decimal(base) ** power }
     static public func ** (base: Decimal, power: Decimal) -> Decimal { return base.pow(power) }
     
     //
@@ -599,6 +1049,10 @@ extension Decimal {
     static public func | (a: Decimal, b: Decimal) -> Decimal { return a.or(b) }
     static public func ^ (a: Decimal, b: Decimal) -> Decimal { return a.xor(b) }
     static public prefix func ~ (a: Decimal) -> Decimal { return a.not() }
+    
+    static public func &= (a: inout Decimal, b: Decimal) { a = a & b }
+    static public func |= (a: inout Decimal, b: Decimal) { a = a | b }
+    static public func ^= (a: inout Decimal, b: Decimal) { a = a ^ b }
     
     static public func << (a: Decimal, b: Decimal) -> Decimal { return a.shift(b.abs()) }
     static public func >> (a: Decimal, b: Decimal) -> Decimal { return a.shift(-b.abs()) }
