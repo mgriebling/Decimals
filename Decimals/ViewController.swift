@@ -93,6 +93,11 @@ class ViewController: UIViewController {
         print("10 or 1 = \(Decimal(10) | 1)")
         print("not 1 = \(~Decimal(1))")
         print("1 << 20 = \(Decimal(1) << 20)")
+        print("\(years) = logical \(years.logical())")
+        print("\(interest) = logical \(interest.logical())")
+        let large = Decimal(200_000_000)
+        print("\(large) = logical \(large.logical())")
+        print("\(large) = base 16 \(large.string(withRadix: 16))")
         
         // try encoding/decoding several numbers
         let dataStore = NSMutableData()

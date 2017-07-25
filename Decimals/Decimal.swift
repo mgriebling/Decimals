@@ -173,6 +173,29 @@ public struct Decimal {
         return String(cString: &cs)
     }
     
+    private func getRadixDigitFor(_ n: Int) -> String {
+        if n < 10 {
+            return String(n)
+        } else {
+            let offset = n - 10
+            let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            let digit = letters[letters.characters.index(letters.startIndex, offsetBy: offset)]
+            return String(digit)
+        }
+    }
+    
+    public func string(withRadix radix : Int) -> String {
+        var nlogical = self.logical()
+        let radix = Decimal(Swift.min(36, Swift.max(radix, 2))).logical()  // restrict to legal radix values 2 to 36
+        var str = ""
+        while nlogical > 0 {
+            let digit = nlogical % radix
+            nlogical = nlogical.idiv(radix)
+            str = getRadixDigitFor(digit.int) + str
+        }
+        return str
+    }
+    
     public static var decNumberVersionString : String {
         return String(cString: decNumberVersion())
     }
@@ -437,6 +460,41 @@ public struct Decimal {
         var a = decimal
         decNumberRotate(&a, &a, &bits.decimal, &Decimal.context)
         return Decimal(a)
+    }
+    
+    public func logical () -> Decimal {
+        // converts decimal numbers to logical
+        let x = self
+        if x.isLogical { return x }
+        let int = x.integer()
+        if int.isLogical { return int }
+        
+        // do this the painful way
+        var y : Decimal = 0
+        var n = int.abs()
+        var bits : Decimal = 0
+        while n > 0 {
+            y |= (n % 2) << bits
+            n = n.idiv(2)
+            bits += 1
+        }
+        return y
+    }
+    
+    public func base10 () -> Decimal {
+        // converts logical numbers to decimal
+        var x = self
+        if x.isLogical {
+            var bit : Decimal = 1
+            var y : Decimal = 0
+            while x > 0 {
+                y |= (x % 2) * bit
+                x = x.idiv(2)
+                bit *= 2
+            }
+            return y
+        }
+        return x
     }
 }
 
