@@ -89,9 +89,9 @@ class ViewController: UIViewController {
         if interest.isLogical { print("\(interest) is logical") }
         else { print("\(interest) is not logical") }
         if start.isLogical { print("\(start) is logical") }
-        else { print("\(interest) is not logical") }
-        print("10 or 1 = \(Decimal(10) | 1)")
-        print("not 1 = \(~Decimal(1))")
+        else { print("\(start) is not logical") }
+        print("1100 or 1 = \((Decimal(12) | 1).string(withRadix: 2))")
+        print("not 1 = \((~Decimal(1)).string(withRadix: 2))")
         print("1 << 20 = \(Decimal(1) << 20)")
         print("\(years) = logical \(years.logical())")
         print("\(interest) = logical \(interest.logical())")

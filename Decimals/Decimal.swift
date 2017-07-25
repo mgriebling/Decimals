@@ -422,30 +422,30 @@ public struct Decimal {
     // MARK: - Logical Operations
     
     public func or (_ b: Decimal) -> Decimal {
-        var b = b
-        var a = decimal
+        var b = b.logical()
+        var a = self.logical().decimal
         decNumberOr(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func and (_ b: Decimal) -> Decimal {
-        var b = b
-        var a = decimal
+        var b = b.logical()
+        var a = self.logical().decimal
         decNumberAnd(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func xor (_ b: Decimal) -> Decimal {
-        var b = b
-        var a = decimal
+        var b = b.logical()
+        var a = self.logical().decimal
         decNumberXor(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func not () -> Decimal {
-        var a = decimal
+        var a = self.logical().decimal
         decNumberInvert(&a, &a, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func shift (_ bits: Decimal) -> Decimal {
@@ -464,17 +464,17 @@ public struct Decimal {
     
     public func logical () -> Decimal {
         // converts decimal numbers to logical
-        let x = self
-        if x.isLogical { return x }
-        let int = x.integer()
-        if int.isLogical { return int }
+//        let x = self
+//        if x.isLogical { return x }
+//        let int = x.integer()
+//        if int.isLogical { return int }
         
         // do this the painful way
         var y : Decimal = 0
-        var n = int.abs()
+        var n = self.integer().abs()
         var bits : Decimal = 0
         while n > 0 {
-            y |= (n % 2) << bits
+            y += (n % 2) << bits
             n = n.idiv(2)
             bits += 1
         }
@@ -484,20 +484,17 @@ public struct Decimal {
     public func base10 () -> Decimal {
         // converts logical numbers to decimal
         var x = self
-        if x.isLogical {
-            var scale : Decimal = 1
-            var y : Decimal = 0
-            while x > 0 {
-                let bit = x % 10
-                if !bit.isZero {
-                    y += scale
-                }
-                x = x.idiv(10)
-                scale *= 2
+        var scale : Decimal = 1
+        var y : Decimal = 0
+        while x > 0 {
+            let bit = x % 10
+            if !bit.isZero {
+                y += scale
             }
-            return y
+            x = x.idiv(10)
+            scale *= 2
         }
-        return x
+        return y
     }
 }
 
