@@ -191,7 +191,7 @@ public struct Decimal {
         while nlogical > 0 {
             let digit = nlogical % radix
             nlogical = nlogical.idiv(radix)
-            str = getRadixDigitFor(digit.int) + str
+            str = getRadixDigitFor(digit.base10().int) + str
         }
         return str
     }
@@ -485,12 +485,15 @@ public struct Decimal {
         // converts logical numbers to decimal
         var x = self
         if x.isLogical {
-            var bit : Decimal = 1
+            var scale : Decimal = 1
             var y : Decimal = 0
             while x > 0 {
-                y |= (x % 2) * bit
-                x = x.idiv(2)
-                bit *= 2
+                let bit = x % 10
+                if !bit.isZero {
+                    y += scale
+                }
+                x = x.idiv(10)
+                scale *= 2
             }
             return y
         }
