@@ -70,7 +70,7 @@ public struct Decimal {
         "3.141592653589793238462643383279502884197169399375105820974944592307816406286" +
         "208998628034825342117067982148086513282306647093844609550582231725359408128481" +
         "117450284102701938521105559644622948954930381964428810975665933446128475648233" +
-        "786783165271201909145648566923460348610454326648213393607260249141273724587006", digits: maximumDigits)
+        "786783165271201909145648566923460348610454326648213393607260249141273724587006", digits: maximumDigits)!
     public static let π = pi
     fileprivate static let _2pi = 2 * pi
     public static let radix = 10
@@ -142,12 +142,36 @@ public struct Decimal {
     public init(_ decimal: Foundation.Decimal) {
         // we cheat since this should be an uncommon thing to do
         let numStr = decimal.description
-        self.init(numStr, digits: 38)  // Apple Decimals are 38 digits fixed
+        self.init(numStr, digits: 38)!  // Apple Decimals are 38 digits fixed
     }
     
-    public init(_ s: String, digits: Int = Decimal.nominalDigits) {
+    private static func digitToInt(_ digit: Character) -> Int? {
+        let radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if let digitIndex = radixDigits.characters.index(of: digit) {
+            return radixDigits.distance(from: radixDigits.startIndex, to:digitIndex)
+        }
+        return nil   // Error illegal radix character
+    }
+    
+    public init?(_ s: String, digits: Int = Decimal.nominalDigits, radix: Int = 10) {
         initContext(digits: digits)
-        decNumberFromString(&decimal, s, &Decimal.context)
+        var ls = s.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores
+        if radix == 10 {
+            // use library function for string conversion
+            decNumberFromString(&decimal, ls, &Decimal.context)
+        } else {
+            // convert non-base 10 string to a Decimal number
+            var number = Decimal(0)
+            let radixNumber = Decimal(radix)
+            for digit in ls.characters {
+                if let digitNumber = Decimal.digitToInt(digit) {
+                    number = number * radixNumber + Decimal(digitNumber)
+                } else {
+                    return nil
+                }
+            }
+            decimal = number.decimal
+        }
     }
     
     public init(_ s: [UInt8], exponent: Int = 0) {
@@ -186,6 +210,7 @@ public struct Decimal {
     
     public func string(withRadix radix : Int) -> String {
         var nlogical = self.logical()
+        print("Logical \(self) = \(nlogical)")
         let radix = Decimal(Swift.min(36, Swift.max(radix, 2))).logical()  // restrict to legal radix values 2 to 36
         var str = ""
         while nlogical > 0 {
@@ -1054,29 +1079,29 @@ extension Decimal {
     private enum permOpts { case invalid, intg, normal }
     private static var DUMP : Bool { return false }  // set true to dump gamma calculations
     
-    private static var constGammaR : Decimal   { return Decimal("23.118910" , digits: maximumDigits) }
-    private static var constGammaC00 : Decimal { return Decimal("2.5066282746310005024157652848102462181924349228522", digits: maximumDigits) }
-    private static var constGammaC01 : Decimal { return Decimal("18989014209.359348921215164214894448711686095466265", digits: maximumDigits) }
-    private static var constGammaC02 : Decimal { return Decimal("-144156200090.5355882360184024174589398958958098464", digits: maximumDigits) }
-    private static var constGammaC03 : Decimal { return Decimal("496035454257.38281370045894537511022614317130604617", digits: maximumDigits) }
-    private static var constGammaC04 : Decimal { return Decimal("-1023780406198.473219243634817725018768614756637869", digits: maximumDigits) }
-    private static var constGammaC05 : Decimal { return Decimal("1413597258976.513273633654064270590550203826819201", digits: maximumDigits) }
-    private static var constGammaC06 : Decimal { return Decimal("-1379067427882.9183979359216084734041061844225060064", digits: maximumDigits) }
-    private static var constGammaC07 : Decimal { return Decimal("978820437063.87767271855507604210992850805734680106", digits: maximumDigits) }
-    private static var constGammaC08 : Decimal { return Decimal("-512899484092.42962331637341597762729862866182241859", digits: maximumDigits) }
-    private static var constGammaC09 : Decimal { return Decimal("199321489453.70740208055366897907579104334149619727", digits: maximumDigits) }
-    private static var constGammaC10 : Decimal { return Decimal("-57244773205.028519346365854633088208532750313858846", digits: maximumDigits) }
-    private static var constGammaC11 : Decimal { return Decimal("12016558063.547581575347021769705235401261600637635", digits: maximumDigits) }
-    private static var constGammaC12 : Decimal { return Decimal("-1809010182.4775432310136016527059786748432390309824", digits: maximumDigits) }
-    private static var constGammaC13 : Decimal { return Decimal("189854754.19838668942471060061968602268245845778493", digits: maximumDigits) }
-    private static var constGammaC14 : Decimal { return Decimal("-13342632.512774849543094834160342947898371410759393", digits: maximumDigits) }
-    private static var constGammaC15 : Decimal { return Decimal("593343.93033412917147656845656655196428754313318006", digits: maximumDigits) }
-    private static var constGammaC16 : Decimal { return Decimal("-15403.272800249452392387706711012361262554747388558", digits: maximumDigits) }
-    private static var constGammaC17 : Decimal { return Decimal("207.44899440283941314233039147731732032900399915969", digits: maximumDigits) }
-    private static var constGammaC18 : Decimal { return Decimal("-1.2096284552733173049067753842722246474652246301493", digits: maximumDigits) }
-    private static var constGammaC19 : Decimal { return Decimal(".0022696111746121940912427376548970713227810419455318", digits: maximumDigits) }
-    private static var constGammaC20 : Decimal { return Decimal("-.00000079888858662627061894258490790700823308816322084001", digits: maximumDigits) }
-    private static var constGammaC21 : Decimal { return Decimal(".000000000016573444251958462210600022758402017645596303687465", digits: maximumDigits) }
+    private static var constGammaR : Decimal   { return Decimal("23.118910", digits: maximumDigits)! }
+    private static var constGammaC00 : Decimal { return Decimal("2.5066282746310005024157652848102462181924349228522", digits: maximumDigits)! }
+    private static var constGammaC01 : Decimal { return Decimal("18989014209.359348921215164214894448711686095466265", digits: maximumDigits)! }
+    private static var constGammaC02 : Decimal { return Decimal("-144156200090.5355882360184024174589398958958098464", digits: maximumDigits)! }
+    private static var constGammaC03 : Decimal { return Decimal("496035454257.38281370045894537511022614317130604617", digits: maximumDigits)! }
+    private static var constGammaC04 : Decimal { return Decimal("-1023780406198.473219243634817725018768614756637869", digits: maximumDigits)! }
+    private static var constGammaC05 : Decimal { return Decimal("1413597258976.513273633654064270590550203826819201", digits: maximumDigits)! }
+    private static var constGammaC06 : Decimal { return Decimal("-1379067427882.9183979359216084734041061844225060064", digits: maximumDigits)! }
+    private static var constGammaC07 : Decimal { return Decimal("978820437063.87767271855507604210992850805734680106", digits: maximumDigits)! }
+    private static var constGammaC08 : Decimal { return Decimal("-512899484092.42962331637341597762729862866182241859", digits: maximumDigits)! }
+    private static var constGammaC09 : Decimal { return Decimal("199321489453.70740208055366897907579104334149619727", digits: maximumDigits)! }
+    private static var constGammaC10 : Decimal { return Decimal("-57244773205.028519346365854633088208532750313858846", digits: maximumDigits)! }
+    private static var constGammaC11 : Decimal { return Decimal("12016558063.547581575347021769705235401261600637635", digits: maximumDigits)! }
+    private static var constGammaC12 : Decimal { return Decimal("-1809010182.4775432310136016527059786748432390309824", digits: maximumDigits)! }
+    private static var constGammaC13 : Decimal { return Decimal("189854754.19838668942471060061968602268245845778493", digits: maximumDigits)! }
+    private static var constGammaC14 : Decimal { return Decimal("-13342632.512774849543094834160342947898371410759393", digits: maximumDigits)! }
+    private static var constGammaC15 : Decimal { return Decimal("593343.93033412917147656845656655196428754313318006", digits: maximumDigits)! }
+    private static var constGammaC16 : Decimal { return Decimal("-15403.272800249452392387706711012361262554747388558", digits: maximumDigits)! }
+    private static var constGammaC17 : Decimal { return Decimal("207.44899440283941314233039147731732032900399915969", digits: maximumDigits)! }
+    private static var constGammaC18 : Decimal { return Decimal("-1.2096284552733173049067753842722246474652246301493", digits: maximumDigits)! }
+    private static var constGammaC19 : Decimal { return Decimal(".0022696111746121940912427376548970713227810419455318", digits: maximumDigits)! }
+    private static var constGammaC20 : Decimal { return Decimal("-.00000079888858662627061894258490790700823308816322084001", digits: maximumDigits)! }
+    private static var constGammaC21 : Decimal { return Decimal(".000000000016573444251958462210600022758402017645596303687465", digits: maximumDigits)! }
     
     private static var gammaConsts : [Decimal] = [
         constGammaC01, constGammaC02, constGammaC03,
@@ -1361,7 +1386,7 @@ extension Decimal : ExpressibleByIntegerLiteral {
 
 extension Decimal : ExpressibleByFloatLiteral {
     
-    public init(floatLiteral value: Double) { self.init(String(value)) }  // not exactly representable anyway so we cheat
+    public init(floatLiteral value: Double) { self.init(String(value))! }  // not exactly representable anyway so we cheat
     
 }
 
@@ -1385,7 +1410,7 @@ extension Decimal : ExpressibleByStringLiteral {
     
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
     public typealias UnicodeScalarLiteralType = Character
-    public init (stringLiteral s: String) { self.init(s) }
+    public init (stringLiteral s: String) { self.init(s)! }
     public init (extendedGraphemeClusterLiteral s: ExtendedGraphemeClusterLiteralType) { self.init(stringLiteral:s) }
     public init (unicodeScalarLiteral s: UnicodeScalarLiteralType) { self.init(stringLiteral:"\(s)") }
     

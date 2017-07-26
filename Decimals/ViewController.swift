@@ -16,8 +16,8 @@ class ViewController: UIViewController {
         
         // addition example -- default digits = 34
         print("Testing library " + Decimal.decNumberVersionString)
-        let a = Decimal("1.23456")
-        let b = Decimal("10.9876")
+        let a = Decimal("1.23456")!
+        let b = Decimal("10.9876")!
         print("\(a) + \(b) = \(a + b)")
         
         // Hashable test
@@ -25,7 +25,7 @@ class ViewController: UIViewController {
         print("Set = \(c)")
         
         // AbsoluteValuable test
-        let d = Decimal("-1.23456")
+        let d = Decimal("-1.23456")!
         print("abs(-1.23456) = \(abs(d))")
         
         // Create Apple Decimal and convert to our Decimal
@@ -63,7 +63,7 @@ class ViewController: UIViewController {
         
         // compound interest example
         let years = Decimal(20)
-        let interest = Decimal("6.5") // %
+        let interest = Decimal("6.5")! // %
         let start = Decimal(100_000)
         var rate : Decimal
         if !Decimal.errorString.isEmpty {
@@ -98,6 +98,10 @@ class ViewController: UIViewController {
         let large = Decimal(200_000_000)
         print("\(large) = logical \(large.logical())")
         print("\(large) = base 16 \(large.string(withRadix: 16))")
+        
+        // Test out some based numbers
+        let radix1 = Decimal("123456789ABCDEF", radix:16)!
+        print("123456789ABCDEF = \(radix1) or \(radix1.string(withRadix: 16))")
         
         // try encoding/decoding several numbers
         let dataStore = NSMutableData()
