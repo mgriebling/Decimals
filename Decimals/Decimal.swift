@@ -104,8 +104,8 @@ public struct Decimal {
     public init(_ decimal : Decimal) { self.decimal = decimal.decimal }
     
     public init(_ uint: UInt) {
+        initContext(digits: Decimal.nominalDigits)
         if uint <= UInt(UInt32.max) && uint >= UInt(UInt32.min)  {
-            initContext(digits: Decimal.nominalDigits)
             decNumberFromUInt32(&decimal, UInt32(uint))
         } else {
             /* do this the long way */
@@ -124,8 +124,8 @@ public struct Decimal {
     
     public init(_ int: Int) {
         /* small integers (32-bits) are directly convertible */
+        initContext(digits: Decimal.nominalDigits)
         if int <= Int(Int32.max) && int >= Int(Int32.min)  {
-            initContext(digits: Decimal.nominalDigits)
             decNumberFromInt32(&decimal, Int32(int))
         } else if int == Int.min {
             // tricky because Int can't represent -Int.min
@@ -208,16 +208,33 @@ public struct Decimal {
         }
     }
     
-    public func string(withRadix radix : Int) -> String {
+    private func getMiniRadixDigits(_ radix: Int) -> String {
+        var result = ""
+        var radix = radix
+        let miniDigits = "₀₁₂₃₄₅₆₇₈₉"
+        while radix > 0 {
+            let offset = radix % 10; radix /= 10
+            let digit = miniDigits[miniDigits.characters.index(miniDigits.startIndex, offsetBy: offset)]
+            result = String(digit) + result
+        }
+        return result
+    }
+    
+    public func string(withRadix radix : Int, showBase : Bool = false) -> String {
         var nlogical = self.logical()
-        print("Logical \(self) = \(nlogical)")
-        let radix = Decimal(Swift.min(36, Swift.max(radix, 2))).logical()  // restrict to legal radix values 2 to 36
+        
+        // restrict to legal radix values 2 to 36
+        let dradix = Decimal(Swift.min(36, Swift.max(radix, 2))).logical()
         var str = ""
+        let oldDigits = Decimal.digits
+        Decimal.digits = Int(nlogical.decimal.digits)
         while nlogical > 0 {
-            let digit = nlogical % radix
-            nlogical = nlogical.idiv(radix)
+            let digit = nlogical % dradix
+            nlogical = nlogical.idiv(dradix)
             str = getRadixDigitFor(digit.base10().int) + str
         }
+        Decimal.digits = oldDigits
+        if showBase { str += getMiniRadixDigits(radix) }
         return str
     }
     
@@ -475,34 +492,33 @@ public struct Decimal {
     
     public func shift (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = decimal
+        var a = self.logical().decimal
         decNumberShift(&a, &a, &bits.decimal, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func rotate (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = decimal
+        var a = self.logical().decimal
         decNumberRotate(&a, &a, &bits.decimal, &Decimal.context)
-        return Decimal(a)
+        return Decimal(a).base10()
     }
     
     public func logical () -> Decimal {
         // converts decimal numbers to logical
-//        let x = self
-//        if x.isLogical { return x }
-//        let int = x.integer()
-//        if int.isLogical { return int }
-        
-        // do this the painful way
+        let oldDigits = Decimal.digits
+        Decimal.digits = Decimal.maximumDigits
         var y : Decimal = 0
         var n = self.integer().abs()
-        var bits : Decimal = 0
+        var scale : Decimal = 1
         while n > 0 {
-            y += (n % 2) << bits
+            if !(n % 2).isZero {
+                y += scale
+            }
             n = n.idiv(2)
-            bits += 1
+            scale *= 10
         }
+        Decimal.digits = oldDigits
         return y
     }
     

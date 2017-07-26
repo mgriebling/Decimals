@@ -90,18 +90,18 @@ class ViewController: UIViewController {
         else { print("\(interest) is not logical") }
         if start.isLogical { print("\(start) is logical") }
         else { print("\(start) is not logical") }
-        print("1100 or 1 = \((Decimal(12) | 1).string(withRadix: 2))")
-        print("not 1 = \((~Decimal(1)).string(withRadix: 2))")
-        print("1 << 20 = \(Decimal(1) << 20)")
+        print("1100 or 1 = \((Decimal(12) | 1).string(withRadix: 2, showBase: true))")
+        print("not 1 = \((~Decimal(1)).string(withRadix: 2, showBase: true))")
+        print("1 << 20 = \((Decimal(1) << 20).string(withRadix: 2, showBase: true))")
         print("\(years) = logical \(years.logical())")
         print("\(interest) = logical \(interest.logical())")
         let large = Decimal(200_000_000)
         print("\(large) = logical \(large.logical())")
-        print("\(large) = base 16 \(large.string(withRadix: 16))")
+        print("\(large) = \(large.string(withRadix: 16, showBase: true))")
         
         // Test out some based numbers
         let radix1 = Decimal("123456789ABCDEF", radix:16)!
-        print("123456789ABCDEF = \(radix1) or \(radix1.string(withRadix: 16))")
+        print("123456789ABCDEF = \(radix1) or \(radix1.string(withRadix: 16, showBase: true))")
         
         // try encoding/decoding several numbers
         let dataStore = NSMutableData()
