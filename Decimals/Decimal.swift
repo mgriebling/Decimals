@@ -530,7 +530,7 @@ public struct Decimal {
         let oldDigits = Decimal.digits
         Decimal.digits = Decimal.maximumDigits
         var y = Decimal.zero
-        var n = self.integer().abs()
+        var n = self.integer.abs()
         var scale : Decimal = 1
         while n > 0 {
             if !(n % 2).isZero {
