@@ -72,6 +72,8 @@ public struct Decimal {
         "117450284102701938521105559644622948954930381964428810975665933446128475648233" +
         "786783165271201909145648566923460348610454326648213393607260249141273724587006", digits: maximumDigits)!
     public static let π = pi
+    public static let zero = Decimal(0)
+    public static let one = Decimal(1)
     fileprivate static let _2pi = 2 * pi
     public static let radix = 10
     
@@ -110,9 +112,9 @@ public struct Decimal {
         } else {
             /* do this the long way */
             let working = uint
-            var x = Decimal(0)
+            var x = Decimal.zero
             var n = working
-            var m = Decimal(1)
+            var m = Decimal.one
             while n != 0 {
                 let r = n % 10; n /= 10
                 if r != 0 { x += m * Decimal(r) }
@@ -161,7 +163,7 @@ public struct Decimal {
             decNumberFromString(&decimal, ls, &Decimal.context)
         } else {
             // convert non-base 10 string to a Decimal number
-            var number = Decimal(0)
+            var number = Decimal.zero
             let radixNumber = Decimal(radix)
             for digit in ls.characters {
                 if let digitNumber = Decimal.digitToInt(digit) {
@@ -508,7 +510,7 @@ public struct Decimal {
         // converts decimal numbers to logical
         let oldDigits = Decimal.digits
         Decimal.digits = Decimal.maximumDigits
-        var y : Decimal = 0
+        var y = Decimal.zero
         var n = self.integer().abs()
         var scale : Decimal = 1
         while n > 0 {
@@ -885,7 +887,7 @@ extension Decimal {
         let x = self
         var x2 : Decimal = 0
         var res : Decimal? = 0
-        var NaN : Decimal { var x = Decimal(0); x.setNAN(); return x }
+        var NaN : Decimal { var x = Decimal.zero; x.setNAN(); return x }
         
         if x.isSpecial {
             res!.setNAN()
