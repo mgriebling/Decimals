@@ -71,6 +71,7 @@ public struct Decimal {
         "208998628034825342117067982148086513282306647093844609550582231725359408128481" +
         "117450284102701938521105559644622948954930381964428810975665933446128475648233" +
         "786783165271201909145648566923460348610454326648213393607260249141273724587006", digits: maximumDigits)!
+    
     public static let π = pi
     fileprivate static let _2pi = 2 * pi
     public static let radix = 10
@@ -220,6 +221,24 @@ public struct Decimal {
         return result
     }
     
+    private func convert (fromBase from: Int, toBase base: Int) -> Decimal {
+        let oldDigits = Decimal.digits
+        Decimal.digits = Decimal.maximumDigits
+        let to = Decimal(base)
+        let from = Decimal(from)
+        var y = Decimal(0)
+        var n = self
+        var scale = Decimal(1)
+        while n > 0 {
+            let digit = n % to
+            y += scale * digit
+            n = n.idiv(to)
+            scale *= from
+        }
+        Decimal.digits = oldDigits
+        return y
+    }
+    
     public func string(withRadix radix : Int, showBase : Bool = false) -> String {
         var nlogical = self.logical()
         
@@ -310,11 +329,11 @@ public struct Decimal {
     
     /// Returns true if the number can be used in logical operations (i.e., is an integer and only contains
     /// digits 0 and 1).
-    public var isLogical: Bool {
-        if !isInteger { return false }
-        let digits = bcd.filter(){ $0 > 1 }
-        return digits.count == 0
-    }
+//    public var isLogical: Bool {
+//        if !isInteger { return false }
+//        let digits = bcd.filter(){ $0 > 1 }
+//        return digits.count == 0
+//    }
 
     // MARK: - Basic Operations
     
@@ -327,7 +346,7 @@ public struct Decimal {
     
     /// Converts the number to an integer representation without any fractional digits.
     /// The active rounding mode is used during this conversion.
-    public func integer () -> Decimal {
+    public var integer : Decimal {
         var a = decimal
         decNumberToIntegralValue(&a, &a, &Decimal.context)
         return Decimal(a)
@@ -506,36 +525,36 @@ public struct Decimal {
     
     public func logical () -> Decimal {
         // converts decimal numbers to logical
-        let oldDigits = Decimal.digits
-        Decimal.digits = Decimal.maximumDigits
-        var y : Decimal = 0
-        var n = self.integer().abs()
-        var scale : Decimal = 1
-        while n > 0 {
-            if !(n % 2).isZero {
-                y += scale
-            }
-            n = n.idiv(2)
-            scale *= 10
-        }
-        Decimal.digits = oldDigits
-        return y
+//        let oldDigits = Decimal.digits
+//        Decimal.digits = Decimal.maximumDigits
+//        var y : Decimal = 0
+//        var n = self.integer().abs()
+//        var scale : Decimal = 1
+//        while n > 0 {
+//            if !(n % 2).isZero {
+//                y += scale
+//            }
+//            n = n.idiv(2)
+//            scale *= 10
+//        }
+//        Decimal.digits = oldDigits
+        return self.integer.abs().convert(fromBase: 10, toBase: 2)
     }
     
     public func base10 () -> Decimal {
         // converts logical numbers to decimal
-        var x = self
-        var scale : Decimal = 1
-        var y : Decimal = 0
-        while x > 0 {
-            let bit = x % 10
-            if !bit.isZero {
-                y += scale
-            }
-            x = x.idiv(10)
-            scale *= 2
-        }
-        return y
+//        var x = self
+//        var scale : Decimal = 1
+//        var y : Decimal = 0
+//        while x > 0 {
+//            let bit = x % 10
+//            if !bit.isZero {
+//                y += scale
+//            }
+//            x = x.idiv(10)
+//            scale *= 2
+//        }
+        return self.convert(fromBase: 2, toBase: 10)
     }
 }
 
@@ -1239,7 +1258,7 @@ extension Decimal {
             let s = Decimal.lnGamma(n)      // lnGamma(y+1) = Ln y!
             n = r - s
             var res = n.exp()
-            if code == .intg { res = res.integer() }
+            if code == .intg { res = res.integer }
             return res
         } else {
             return r
@@ -1254,7 +1273,7 @@ extension Decimal {
         let code = Decimal.permHelper(&t, x: self, y: y)
         if code != .invalid {
             var res = t.exp()                           // dn_exp(res, &t);
-            if code == .intg { res = res.integer() }
+            if code == .intg { res = res.integer }
             return res
         } else {
             return t

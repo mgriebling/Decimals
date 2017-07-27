@@ -86,10 +86,10 @@ class ViewController: UIViewController {
         print("sqrt(2)   = \(sqrt2)\nsqrt(2)^2 = \(sqrt2 * sqrt2)")
         
         Decimal.digits = 32  // limit logical numbers to 32 bits
-        if interest.isLogical { print("\(interest) is logical") }
-        else { print("\(interest) is not logical") }
-        if start.isLogical { print("\(start) is logical") }
-        else { print("\(start) is not logical") }
+//        if interest.isLogical { print("\(interest) is logical") }
+//        else { print("\(interest) is not logical") }
+//        if start.isLogical { print("\(start) is logical") }
+//        else { print("\(start) is not logical") }
         print("1100 or 1 = \((Decimal(12) | 1).string(withRadix: 2, showBase: true))")
         print("not 1 = \((~Decimal(1)).string(withRadix: 2, showBase: true))")
         print("1 << 20 = \((Decimal(1) << 20).string(withRadix: 2, showBase: true))")
