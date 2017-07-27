@@ -117,7 +117,6 @@ func computePi<T:RealOperations>() -> T {
     m = 2
     
     p = 1 / a
-//    print("Iteration  0: \(p)")
     
     for _ in 1...max_iter {
         m *= 4
