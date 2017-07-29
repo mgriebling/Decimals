@@ -132,6 +132,10 @@ class ViewController: UIViewController {
         // compute pi
         let pi2 : MyDecimal = computePi()
         print("NSDecimal pi = \(pi2)")
+        
+        // test some gamma function values
+        let x12 : Decimal = 0.5
+        print("gamma(1/2)² = \(x12.gamma().sqr())")
     }
 
     override func didReceiveMemoryWarning() {

@@ -69,9 +69,14 @@ public struct Decimal {
     public static let π = pi
     public static let zero = Decimal(0)
     public static let one = Decimal(1)
+    public static let two = Decimal(2)
     
-    fileprivate static var Nil : Decimal? = nil
-    fileprivate static let _2pi = 2 * pi
+    fileprivate static var infinity : Decimal { var x = zero; x.setINF(); return x }
+    fileprivate static var Nil : Decimal?
+    fileprivate static var NaN : Decimal { var x = zero; x.setNAN(); return x }
+    fileprivate static let _2pi = two * pi
+    fileprivate static let pi_2 = pi / two
+    
     public static let radix = 10
     
     // MARK: - Status Methods
@@ -238,19 +243,16 @@ public struct Decimal {
     }
     
     public func string(withRadix radix : Int, showBase : Bool = false) -> String {
-        var nlogical = logical()
+        var n = self.integer.abs()
         
         // restrict to legal radix values 2 to 36
-        let dradix = Decimal(Swift.min(36, Swift.max(radix, 2))).logical()
+        let dradix = Decimal(Swift.min(36, Swift.max(radix, 2)))
         var str = ""
-        let oldDigits = Decimal.digits
-        Decimal.digits = Int(nlogical.decimal.digits)
-        while !nlogical.isZero {
-            let digit = nlogical % dradix
-            nlogical = nlogical.idiv(dradix)
-            str = getRadixDigitFor(digit.base10().int) + str
+        while !n.isZero {
+            let digit = n % dradix
+            n = n.idiv(dradix)
+            str = getRadixDigitFor(digit.int) + str
         }
-        Decimal.digits = oldDigits
         if showBase { str += getMiniRadixDigits(radix) }
         return str
     }
@@ -474,41 +476,41 @@ public struct Decimal {
     
     public func or (_ b: Decimal) -> Decimal {
         var b = b.logical()
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberOr(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a).base10()
     }
     
     public func and (_ b: Decimal) -> Decimal {
         var b = b.logical()
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberAnd(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a).base10()
     }
     
     public func xor (_ b: Decimal) -> Decimal {
         var b = b.logical()
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberXor(&a, &a, &b.decimal, &Decimal.context)
         return Decimal(a).base10()
     }
     
     public func not () -> Decimal {
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberInvert(&a, &a, &Decimal.context)
         return Decimal(a).base10()
     }
     
     public func shift (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberShift(&a, &a, &bits.decimal, &Decimal.context)
         return Decimal(a).base10()
     }
     
     public func rotate (_ bits: Decimal) -> Decimal {
         var bits = bits
-        var a = self.logical().decimal
+        var a = logical().decimal
         decNumberRotate(&a, &a, &bits.decimal, &Decimal.context)
         return Decimal(a).base10()
     }
@@ -675,12 +677,12 @@ extension Decimal {
             t *= a2     // dn_multiply(&t, &t, &a2);
             z = t / j   // dn_divide(&z, &t, &j);
             res += z    // dn_add(res, res, &z);
-            j += 2      // dn_p2(&j, &j);
+            j += Decimal.two // dn_p2(&j, &j);
             
             t *= a2     // dn_multiply(&t, &t, &a2);
             z = t / j   // dn_divide(&z, &t, &j);
             res += z    // dn_subtract(res, res, &z);
-            j += 2      // dn_p2(&j, &j);
+            j += Decimal.two  // dn_p2(&j, &j);
         } while res != last
         res *= a        // dn_multiply(res, res, &a);
         
@@ -690,7 +692,7 @@ extension Decimal {
         }
         
         if invert {
-            res = Decimal.pi/2 - res // dn_subtract(res, &const_PIon2, res);
+            res = Decimal.pi_2 - res // dn_subtract(res, &const_PIon2, res);
         }
         
         if neg { res = -res } // dn_minus(res, res);
@@ -701,7 +703,7 @@ extension Decimal {
         let yneg = y.isNegative
         var at = Decimal.zero
         
-        if x.isNaN || y.isNaN { at.setNAN(); return at }
+        if x.isNaN || y.isNaN { return Decimal.NaN }
         if y.isZero {
             if yneg {
                 if x.isZero {
@@ -731,14 +733,14 @@ extension Decimal {
             return at
         }
         if x.isZero  {
-            at = Decimal.pi/2 // decNumberPIon2(at);
+            at = Decimal.pi_2 // decNumberPIon2(at);
             if yneg { at = -at } //  dn_minus(at, at);
             return at
         }
         if x.isInfinite {
             if xneg {
                 if y.isInfinite {
-                    at = Decimal.pi * Decimal("0.75")  // decNumberPI(&t);
+                    at = Decimal.pi * 0.75  // decNumberPI(&t);
                     // dn_multiply(at, &t, &const_0_75);
                     if yneg { at = -at } // dn_minus(at, at);
                 } else {
@@ -757,7 +759,7 @@ extension Decimal {
             return at
         }
         if y.isInfinite  {
-            at = Decimal.pi/2    // decNumberPIon2(at);
+            at = Decimal.pi_2    // decNumberPIon2(at);
             if yneg { at = -at } //  dn_minus(at, at);
             return at
         }
@@ -868,14 +870,13 @@ extension Decimal {
         let x = self
         var x2 = Decimal.zero
         var res : Decimal? = Decimal.zero
-        var NaN : Decimal { var x = Decimal.zero; x.setNAN(); return x }
         
         if x.isSpecial {
             res!.setNAN()
         } else {
             let digits = Decimal.digits
             Decimal.digits = Decimal.SINCOS_DIGITS
-            if Decimal.convertToRadians(res: &x2, x: x, r0:0, r1:NaN, r2:0, r3:NaN) {
+            if Decimal.convertToRadians(res: &x2, x: x, r0:0, r1:Decimal.NaN, r2:0, r3:Decimal.NaN) {
                 var s, c : Decimal?
                 Decimal.sincosTaylor(x2, sout: &s, cout: &c)
                 x2 = s! / c!  // dn_divide(&x2.n, &s.n, &c.n);
@@ -905,9 +906,9 @@ extension Decimal {
         var z = Decimal.zero
         if x.isSpecial {
             if x.isNaN {
-                return x
+                return Decimal.NaN
             } else {
-                z = Decimal.pi/2
+                z = Decimal.pi_2
                 if x.isNegative { z = -z }
             }
         } else {
@@ -951,7 +952,7 @@ extension Decimal {
         if sinhv != nil {
             if x.abs() < 0.5 {
                 var u = Expm1(x)
-                let t = u / 2       // dn_div2(&t, &u);
+                let t = u / Decimal.two // dn_div2(&t, &u);
                 u += Decimal.one    // dn_inc(&u);
                 let v = t / u       // dn_divide(&v, &t, &u);
                 u += Decimal.one    // dn_inc(&u);
@@ -960,20 +961,20 @@ extension Decimal {
                 let u = x.exp()     // dn_exp(&u, x);			// u = e^x
                 let v = Decimal.one / u   // decNumberRecip(&v, &u);		// v = e^-x
                 let t = u - v       // dn_subtract(&t, &u, &v);	// r = e^x - e^-x
-                sinhv = t / 2       // dn_div2(sinhv, &t);
+                sinhv = t / Decimal.two       // dn_div2(sinhv, &t);
             }
         }
         if coshv != nil {
             let u = x.exp()           // dn_exp(&u, x);			// u = e^x
             let v = Decimal.one / u   // decNumberRecip(&v, &u);		// v = e^-x
-            coshv = (u + v) / 2       // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
+            coshv = (u + v) / Decimal.two       // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
         }
     }
     
     public func sinh() -> Decimal {
         let x = self
         if x.isSpecial {
-            if x.isNaN { return x }
+            if x.isNaN { return Decimal.NaN }
             return x
         }
         var res : Decimal? = Decimal.zero
@@ -993,9 +994,8 @@ extension Decimal {
         let x = self
         var res : Decimal? = Decimal.zero
         if x.isSpecial {
-            if x.isNaN { return x }
-            res!.setINF()
-            return res!
+            if x.isNaN { return Decimal.NaN }
+            return Decimal.infinity
         }
         Decimal.sinhcosh(x: x, sinhv: &Decimal.Nil, coshv: &res)
         return res!
@@ -1003,14 +1003,14 @@ extension Decimal {
     
     public func tanh() -> Decimal {
         let x = self
-        if x.isNaN { return x }
+        if x.isNaN { return Decimal.NaN }
         if x < 100 {
             if x.isNegative { return -1 }
             return Decimal.one
         }
         var a = x.sqr()               // dn_add(&a, x, x);
         let b = a.exp()-Decimal.one   // decNumberExpm1(&b, &a);
-        a = b + 2                     // dn_p2(&a, &b);
+        a = b + Decimal.two           // dn_p2(&a, &b);
         return b / a
     }
     
@@ -1051,18 +1051,18 @@ extension Decimal {
     public func arcTanh() -> Decimal {
         let x = self
         var res = Decimal.zero
-        if x.isNaN { return x }
+        if x.isNaN { return Decimal.NaN }
         var y = x.abs()
         if y == Decimal.one {
             if x.isNegative { res.setNINF(); return res }
-            res.setINF(); return res
+            return Decimal.infinity
         }
         // Not the obvious formula but more stable...
         var z = x - Decimal.one   // dn_1m(&z, x);
         y = x / z                 // dn_divide(&y, x, &z);
-        z = 2 * y                 // dn_mul2(&z, &y);
+        z = Decimal.two * y       // dn_mul2(&z, &y);
         y = z.Ln1p()              // decNumberLn1p(&y, &z);
-        return y / 2
+        return y / Decimal.two
     }
 
 }
@@ -1072,183 +1072,23 @@ extension Decimal {
 //
 
 extension Decimal {
-//    
-//    private enum permOpts { case invalid, intg, normal }
-//    private static var DUMP : Bool { return false }  // set true to dump gamma calculations
-//    
-//    private static var constGammaR : Decimal   { return Decimal("23.118910", digits: maximumDigits)! }
-//    private static var constGammaC00 : Decimal { return Decimal("2.5066282746310005024157652848102462181924349228522", digits: maximumDigits)! }
-//    private static var constGammaC01 : Decimal { return Decimal("18989014209.359348921215164214894448711686095466265", digits: maximumDigits)! }
-//    private static var constGammaC02 : Decimal { return Decimal("-144156200090.5355882360184024174589398958958098464", digits: maximumDigits)! }
-//    private static var constGammaC03 : Decimal { return Decimal("496035454257.38281370045894537511022614317130604617", digits: maximumDigits)! }
-//    private static var constGammaC04 : Decimal { return Decimal("-1023780406198.473219243634817725018768614756637869", digits: maximumDigits)! }
-//    private static var constGammaC05 : Decimal { return Decimal("1413597258976.513273633654064270590550203826819201", digits: maximumDigits)! }
-//    private static var constGammaC06 : Decimal { return Decimal("-1379067427882.9183979359216084734041061844225060064", digits: maximumDigits)! }
-//    private static var constGammaC07 : Decimal { return Decimal("978820437063.87767271855507604210992850805734680106", digits: maximumDigits)! }
-//    private static var constGammaC08 : Decimal { return Decimal("-512899484092.42962331637341597762729862866182241859", digits: maximumDigits)! }
-//    private static var constGammaC09 : Decimal { return Decimal("199321489453.70740208055366897907579104334149619727", digits: maximumDigits)! }
-//    private static var constGammaC10 : Decimal { return Decimal("-57244773205.028519346365854633088208532750313858846", digits: maximumDigits)! }
-//    private static var constGammaC11 : Decimal { return Decimal("12016558063.547581575347021769705235401261600637635", digits: maximumDigits)! }
-//    private static var constGammaC12 : Decimal { return Decimal("-1809010182.4775432310136016527059786748432390309824", digits: maximumDigits)! }
-//    private static var constGammaC13 : Decimal { return Decimal("189854754.19838668942471060061968602268245845778493", digits: maximumDigits)! }
-//    private static var constGammaC14 : Decimal { return Decimal("-13342632.512774849543094834160342947898371410759393", digits: maximumDigits)! }
-//    private static var constGammaC15 : Decimal { return Decimal("593343.93033412917147656845656655196428754313318006", digits: maximumDigits)! }
-//    private static var constGammaC16 : Decimal { return Decimal("-15403.272800249452392387706711012361262554747388558", digits: maximumDigits)! }
-//    private static var constGammaC17 : Decimal { return Decimal("207.44899440283941314233039147731732032900399915969", digits: maximumDigits)! }
-//    private static var constGammaC18 : Decimal { return Decimal("-1.2096284552733173049067753842722246474652246301493", digits: maximumDigits)! }
-//    private static var constGammaC19 : Decimal { return Decimal(".0022696111746121940912427376548970713227810419455318", digits: maximumDigits)! }
-//    private static var constGammaC20 : Decimal { return Decimal("-.00000079888858662627061894258490790700823308816322084001", digits: maximumDigits)! }
-//    private static var constGammaC21 : Decimal { return Decimal(".000000000016573444251958462210600022758402017645596303687465", digits: maximumDigits)! }
-//    
-//    private static var gammaConsts : [Decimal] = [
-//        constGammaC01, constGammaC02, constGammaC03,
-//        constGammaC04, constGammaC05, constGammaC06,
-//        constGammaC07, constGammaC08, constGammaC09,
-//        constGammaC10, constGammaC11, constGammaC12,
-//        constGammaC13, constGammaC14, constGammaC15,
-//        constGammaC16, constGammaC17, constGammaC18,
-//        constGammaC19, constGammaC20, constGammaC21,
-//    ]
-//    
-//    static private func Dump(_ r: Decimal, _ s: String) {
-//        if DUMP { print(s + "=\(r)") }
-//    }
-//    
-//    static private func LnGamma(_ x: Decimal) -> Decimal {
-//        Dump(x, "z")
-//        var s = Decimal.zero            // decNumberZero(&s);
-//        var t = x + 21                  // dn_add(&t, x, &const_21);
-//        for k in (0...20).reversed() {  // (k = 20; k >= 0; k--) {
-//            let u = gammaConsts[k] / t  // dn_divide(&u, gamma_consts[k], &t);
-//            t -= Decimal.one            // dn_dec(&t);
-//            s += u                      // dn_add(&s, &s, &u);
-//        }
-//        t = s + constGammaC00           // dn_add(&t, &s, &const_gammaC00);
-//        s = t.ln()                      // dn_ln(&s, &t);
-//        Dump(t, "sum")
-//        Dump(s, "ln")
-//        
-//        //		r = z + g + .5;
-//        let r = x + constGammaR         // dn_add(&r, x, &const_gammaR)
-//        Dump(r, "r")
-//        
-//        //		r = log(R[0][0]) + (z+.5) * log(r) - r;
-//        var u = r.ln()                  // dn_ln(&u, &r);
-//        t = x + 0.5                     // dn_add(&t, x, &const_0_5);
-//        let v = u * t                   // dn_multiply(&v, &u, &t);
-//        Dump(v, "(z+.5)*log(r)")
-//        
-//        u = v - r                       // dn_subtract(&u, &v, &r);
-//        let res = u + s                 // dn_add(res, &u, &s);
-//        
-//        Dump(res, "res")
-//        return res
-//    }
-//    
-//    static private func lnGamma(_ xin: Decimal) -> Decimal {
-//        var reflec = false
-//        var res = Decimal.zero
-//        
-//        // Check for special cases
-//        if xin.isSpecial {
-//            if xin.isInfinite && !xin.isNegative { return xin }
-//            res.setNAN(); return res
-//        }
-//        
-//        // Correct out argument and begin the inversion if it is negative
-//        var x : Decimal
-//        if xin <= Decimal.zero {
-//            reflec = true
-//            let t = Decimal.one - xin         // dn_1m(&t, xin);
-//            if t.isInteger {
-//                res.setNAN(); return res
-//            }
-//            x = t - Decimal.one               // dn_m1(&x, &t);
-//        } else {
-//            x = xin - Decimal.one             // dn_m1(&x, xin);
-//        }
-//        
-//        res = LnGamma(x)
-//        
-//        // Finally invert if we started with a negative argument
-//        if reflec {
-//            // Figure out S * PI mod 2PI
-//            var u = xin % 2             // decNumberMod(&u, xin, &const_2);
-//            var t = u * pi              // dn_mulPI(&t, &u);
-//            t = x.sin()                 // sincosTaylor(&t, &x, NULL);
-//            u = pi / x                  // dn_divide(&u, &const_PI, &x);
-//            t = u.ln()                  // dn_ln(&t, &u);
-//            res = t - res               // dn_subtract(res, &t, res);
-//        }
-//        return res
-//    }
-//    
-//    static private func permHelper(_ r: inout Decimal, x: Decimal, y: Decimal) -> permOpts {
-//        if x.isSpecial || y.isSpecial || x.isNegative || y.isNegative {
-//            if x.isInfinite && !y.isInfinite {
-//                r.setINF()
-//            } else {
-//                r.setNAN()
-//            }
-//            return .invalid
-//        }
-//        var n = x + Decimal.one // dn_p1(&n, x);				// x+1
-//        let s = lnGamma(n)      // lnGamma(x+1) = Ln x!
-//        
-//        r = n - y               // dn_subtract(r, &n, y);	// x-y+1
-//        if r <= Decimal.zero {
-//            r.setNAN()
-//            return .invalid
-//        }
-//        n = lnGamma(r)          // decNumberLnGamma(&n, r);		// LnGamma(x-y+1) = Ln (x-y)!
-//        r = s - n               // dn_subtract(r, &s, &n);
-//        
-//        if x.isInteger && y.isInteger { return .intg }
-//        return .normal
-//    }
     
     /* Calculate permutations:
      * C(x, y) = P(x, y) / y! = x! / ( (x-y)! y! )
      */
     public func comb (y: Decimal) -> Decimal {
-//        var r = Decimal.zero
-//        let code = Decimal.permHelper(&r, x: self, y: y)
-//        if code != .invalid {
-//            var n = y + Decimal.one
-//            let s = Decimal.lnGamma(n)      // lnGamma(y+1) = Ln y!
-//            n = r - s
-//            var res = n.exp()
-//            if code == .intg { res = res.integer }
-//            return res
-//        } else {
-//            return r
-//        }
-        return y
+        return self.perm(y: y) / y.factorial()
     }
     
     /* Calculate permutations:
      * P(x, y) = x! / (x-y)!
      */
     public func perm (y: Decimal) -> Decimal {
-//        var t = Decimal.zero
-//        let code = Decimal.permHelper(&t, x: self, y: y)
-//        if code != .invalid {
-//            var res = t.exp()                           // dn_exp(res, &t);
-//            if code == .intg { res = res.integer }
-//            return res
-//        } else {
-//            return t
-//        }
-        return y
+        let xfact = self.factorial()
+        return xfact / (self - y).factorial()
     }
     
     public func gamma () -> Decimal {
-        // declarations
-//        int k;
-//        int a, N, sign;
-//        int working_prec;
-//        int ndp; // num digits precision requested.
-        
         let t = self
         let ndp = Double(Decimal.digits)
         
@@ -1257,19 +1097,13 @@ extension Decimal {
         
         let a = ceil( 1.25 * ndp / Darwin.log10( 2.0 * acos(-1.0) ) )
         
-//        mp_real arg, sum, runningExp, runningFactorial, temp, x1, x2 ;
-//        mp_real denom;
-//        // multi-precision constants
-//        mp_real rootTwoPi, oneOverRootTwoPi, e, oneOverE ;
-        
-        
         // Handle improper arguments.
         if t.abs() > 1.0e8 {
             print("gamma: argument is too large")
-            exit(-1)
+            return Decimal.infinity
         } else if t.isInteger && t <= 0 {
             print("gamma: invalid negative argument")
-            exit(-1)
+            return Decimal.NaN
         }
         
         // for testing first handle args greater than 1/2
@@ -1283,7 +1117,7 @@ extension Decimal {
             if (Decimal.pi * t).sin() == 0 {
                 print("value of argument is too close to a negative integer or zero.\n" +
                     "sin(pi * t) is zero indicating singularity. Increase precision to fix. ")
-                exit(-1)
+                return Decimal.infinity
             }
         } else {
             arg = t
@@ -1301,8 +1135,8 @@ extension Decimal {
         let N = a - 1
         var sign = -1
         
-        let rootTwoPi = (2 * Decimal.pi).sqrt()
-        let oneOverRootTwoPi = 1 / rootTwoPi
+        let rootTwoPi = Decimal._2pi.sqrt()
+        let oneOverRootTwoPi = Decimal.one / rootTwoPi
         
         let e = Decimal.one.exp()
         let oneOverE = Decimal.one / e
@@ -1318,7 +1152,7 @@ extension Decimal {
             
             // keep (k-1)! term for computing coefficient
             if k == 1 {
-                runningFactorial = 1
+                runningFactorial = Decimal.one
             } else {
                 runningFactorial *= Decimal(k-1)
             }
@@ -1344,55 +1178,6 @@ extension Decimal {
         }
         
         return rootTwoPi * arga1 ** (arg - 0.5) * arga2.exp() * sum
-        
-//        var reflec = false
-//        var res = Decimal.zero
-//        let xin = self
-//        
-//        // Check for special cases
-//        if xin.isSpecial {
-//            if xin.isInfinite && !xin.isNegative { return xin }
-//            res.setNAN(); return res
-//        }
-//        
-//        // Correct our argument and begin the inversion if it is negative
-//        var x : Decimal
-//        if xin <= Decimal.zero {
-//            reflec = true
-//            let t = Decimal.one - xin  // dn_1m(&t, xin);
-//            if t.isInteger {
-//                res.setNAN(); return res
-//            }
-//            x = t - Decimal.one  // dn_m1(&x, &t);
-//        } else {
-//            x = xin - Decimal.one // dn_m1(&x, xin);
-//            
-//            // Provide a fast path evaluation for positive integer arguments that aren't too large
-//            // The threshold for overflow is 205! (i.e. 204! is within range and 205! isn't).
-//            // Without introducing a new constant, we've got 150 or 256 to choose from.
-//            if x.isInteger && !xin.isZero && x < 256 {
-//                res = Decimal.one
-//                while !x.isZero {
-//                    res *= x            // dn_multiply(res, res, &x);
-//                    x -= Decimal.one    // dn_m1(&x, &x);
-//                }
-//                return res
-//            }
-//        }
-//        
-//        let t = Decimal.LnGamma(x)  // dn_LnGamma(&t, &x);
-//        res = t.exp()               // dn_exp(res, &t);
-//        
-//        // Finally invert if we started with a negative argument
-//        if reflec {
-//            // Figure out xin * PI mod 2PI
-//            var u = xin % 2             // decNumberMod(&u, xin, &const_2);
-//            let t = u * Decimal.pi      // dn_mulPI(&t, &u);
-//            let s = t.sin()             // sincosTaylor(&t, &x, NULL);
-//            u = s * res
-//            res = Decimal.pi / u        // dn_divide(&u, &const_PI, &x);
-//        }
-//        return res
     }
     
     public func factorial () -> Decimal {
