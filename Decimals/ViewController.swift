@@ -85,6 +85,10 @@ class ViewController: UIViewController {
         Decimal.digits = digits
         print("sqrt(2)   = \(sqrt2)\nsqrt(2)^2 = \(sqrt2 * sqrt2)")
         
+        // Test exp()
+        let exp1 = Decimal.one.exp()
+        print("exp(1) = \(exp1)")
+        
         Decimal.digits = 32  // limit logical numbers to 32 bits
 //        if interest.isLogical { print("\(interest) is logical") }
 //        else { print("\(interest) is not logical") }
@@ -134,8 +138,9 @@ class ViewController: UIViewController {
         print("NSDecimal pi = \(pi2)")
         
         // test some gamma function values
+//        Decimal.digits = 32
         let x12 : Decimal = 0.5
-        print("gamma(1/2)² = \(x12.gamma().sqr())")
+        print("gamma(1/2)² = \(x12.gamma().²)")
     }
 
     override func didReceiveMemoryWarning() {

@@ -11,6 +11,7 @@
 //
 
 import Foundation
+import DecNumbers
 
 public struct Decimal {
     
@@ -1095,6 +1096,7 @@ extension Decimal {
         let working_prec = ceil(1.5 * ndp)
         Decimal.digits = Int(working_prec)
         
+        print("t = \(t)")
         let a = ceil( 1.25 * ndp / Darwin.log10( 2.0 * acos(-1.0) ) )
         
         // Handle improper arguments.
@@ -1146,6 +1148,8 @@ extension Decimal {
         
         var sum = Decimal.one
         
+//        print("x = \(x), runningExp = \(runningExp), runningFactorial = \(runningFactorial)")
+        
         // get summation term
         for k in 1...Int(N) {
             sign = -sign
@@ -1163,6 +1167,7 @@ extension Decimal {
             let x2 = Decimal(floatLiteral: Double(k) - 0.5)
             
             sum += oneOverRootTwoPi * Decimal(sign) * runningExp * x1 ** x2 / ( runningFactorial * (arg + Decimal(k - 1) ))
+//            print("Iteration \(k), sum = \(sum)")
         }
         
         // restore the original precision 
