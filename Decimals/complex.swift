@@ -265,30 +265,34 @@ extension Complex : ExpressibleByStringLiteral {
     //
     public init(stringLiteral s: String) {
         var vs = s.replacingOccurrences(of: " ", with: "").lowercased()  // remove all spaces & make lowercase
+        self.init()
         if !vs.isEmpty {
             // break apart the string into real and imaginary pieces
-            let signChars = NSCharacterSet(charactersIn: "+-")
+            let signChars = CharacterSet(charactersIn: "+-")
             let exponent = "e"
             let imaginary = "i"
             var number = ""
             var inumber = ""
-            var ch = vs[vs.startIndex]
+            var ch = vs.remove(at: vs.startIndex)
             var iPresent = false
             
             // remove leading sign -- if any
-            if signChars.characterIsMember(ch.toUnichar()) { number.append(ch); ch = vs.removeAtIndex(vs.startIndex) }
-            if var range = vs.rangeOfCharacterFromSet(signChars) {
+            if signChars.contains(UnicodeScalar(String(ch))!) {
+                number.append(ch); ch = vs.remove(at: vs.startIndex)
+            }
+            if let range = vs.rangeOfCharacter(from: signChars) {
                 // check if this is an exponent
-                if let expRange = vs.rangeOfString(exponent), expRange.startIndex == range.startIndex.predecessor() {
+                if let expRange = vs.range(of: exponent), expRange.lowerBound == range.lowerBound {
                     // search beyond the exponent
-                    range = range.startIndex.successor()...vs.endIndex
-                    if let range = vs.rangeOfCharacterFromSet(signChars, options: [], range: range) {
+                    let start = vs.index(after: range.lowerBound)
+                    let newRange = Range(uncheckedBounds: (start, vs.endIndex))
+                    if let range = vs.rangeOfCharacter(from: signChars, options: [], range: newRange) {
                         // This is likely the start of the second number
-                        number += vs.substringToIndex(range.startIndex)
-                        inumber = vs.substringFromIndex(range.startIndex)
+                        number += vs.substring(to: range.lowerBound)
+                        inumber = vs.substring(from: range.lowerBound)
                     } else {
                         // Only one number exists
-                        if let _ = vs.rangeOfString(imaginary) {
+                        if let _ = vs.range(of: imaginary) {
                             inumber = number + vs 	// transfer the sign
                             number = ""				// clear the real part
                         } else {
@@ -297,35 +301,34 @@ extension Complex : ExpressibleByStringLiteral {
                     }
                 } else {
                     // This is the start of the second number
-                    number += vs.substringToIndex(range.startIndex)
-                    inumber = vs.substringFromIndex(range.startIndex)
+                    number += vs.substring(to: range.lowerBound)
+                    inumber = vs.substring(from: range.lowerBound)
                 }
             } else {
                 // only one number exists
-                if let _ = vs.rangeOfString(imaginary) {
+                if let _ = vs.range(of: imaginary) {
                     inumber = number + vs 	// transfer the sign
                     number = ""				// clear the real part
                 } else {
                     number += vs			// copy the number
                 }
             }
-            super.init(number)
+
+            re = T(number)!
             iPresent = !inumber.isEmpty
-            inumber = inumber.stringByReplacingOccurrencesOfString(imaginary, withString: "") // remove the "i"
+            inumber = inumber.replacingOccurrences(of: imaginary, with: "") // remove the "i"
             
             // account for solitary "i"
             if iPresent {
                 if inumber.isEmpty { inumber = "1" }
                 else if inumber == "+" || inumber == "-" { inumber += "1" }
             }
-            im = T(inumber)
-        } else {
-            super.init()
+            im = T(inumber)!
         }
     }
 
-    
 }
+
 
 
 public func == <T>(lhs:Complex<T>, rhs:T) -> Bool {
