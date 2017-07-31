@@ -122,9 +122,9 @@ class ViewController: UIViewController {
         
         // compute pi
         Decimal.digits = Decimal.maximumDigits
-        let pi : Decimal = computePi()
+//        let pi : Decimal = computePi()
 //        let pi2 : Double = computePi()
-        print("Decimal pi = \(pi)")
+//        print("Decimal pi = \(pi)")
 //        print("Double  pi = \(pi2)")
 //        print("Math    pi = \(M_PI)")
         
@@ -141,6 +141,10 @@ class ViewController: UIViewController {
 //        Decimal.digits = 32
         let x12 : Decimal = 0.5
         print("gamma(1/2)² = \(x12.gamma().²)")
+        
+        // Test some complex stuff
+        let c1 = CDecimal(1, 0)
+        print(c1)
     }
 
     override func didReceiveMemoryWarning() {

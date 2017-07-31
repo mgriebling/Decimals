@@ -17,6 +17,8 @@
 		2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DD1B9F03F9004144EA /* GenericMath.swift */; };
 		47242D311F2CDB0E009301DC /* DecNumbers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 47242D301F2CDB0E009301DC /* DecNumbers.framework */; };
 		47242D321F2CDB1B009301DC /* DecNumbers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 47242D301F2CDB0E009301DC /* DecNumbers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		477C4CD11F2E2E3F00BEBC4B /* CDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477C4CD01F2E2E3F00BEBC4B /* CDecimal.swift */; };
+		47EE20261F2E264300FD70A8 /* complex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47EE20251F2E264300FD70A8 /* complex.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,8 @@
 		2FF796D51B9F03F9004144EA /* Decimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decimal.swift; sourceTree = "<group>"; };
 		2FF796DD1B9F03F9004144EA /* GenericMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericMath.swift; sourceTree = "<group>"; };
 		47242D301F2CDB0E009301DC /* DecNumbers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DecNumbers.framework; path = "../../../Library/Developer/Xcode/DerivedData/Decimals-clgpzvvbhqplqqflcpaghviuugyc/Build/Products/Debug-iphonesimulator/DecNumbers.framework"; sourceTree = "<group>"; };
+		477C4CD01F2E2E3F00BEBC4B /* CDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CDecimal.swift; sourceTree = "<group>"; };
+		47EE20251F2E264300FD70A8 /* complex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = complex.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,8 +105,10 @@
 			isa = PBXGroup;
 			children = (
 				2FF796D51B9F03F9004144EA /* Decimal.swift */,
+				477C4CD01F2E2E3F00BEBC4B /* CDecimal.swift */,
 				2FF796DD1B9F03F9004144EA /* GenericMath.swift */,
 				2FF796B31B9F0383004144EA /* ViewController.swift */,
+				47EE20251F2E264300FD70A8 /* complex.swift */,
 				2FF796B11B9F0383004144EA /* AppDelegate.swift */,
 				2FF796B51B9F0383004144EA /* Main.storyboard */,
 				2FF796B81B9F0383004144EA /* Assets.xcassets */,
@@ -235,8 +241,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				47EE20261F2E264300FD70A8 /* complex.swift in Sources */,
 				2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */,
 				2FF796B41B9F0383004144EA /* ViewController.swift in Sources */,
+				477C4CD11F2E2E3F00BEBC4B /* CDecimal.swift in Sources */,
 				2FF796B21B9F0383004144EA /* AppDelegate.swift in Sources */,
 				2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */,
 			);

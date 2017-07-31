@@ -244,7 +244,7 @@ public struct Decimal {
     }
     
     public func string(withRadix radix : Int, showBase : Bool = false) -> String {
-        var n = self.integer.abs()
+        var n = self.integer.abs
         
         // restrict to legal radix values 2 to 36
         let dradix = Decimal(Swift.min(36, Swift.max(radix, 2)))
@@ -291,6 +291,24 @@ public struct Decimal {
         var a = decimal
         let cs = decNumberClassToString(decNumberClass(&a, &Decimal.context))
         return String(cString: cs!)
+    }
+    
+    public var floatingPointClass: FloatingPointClassification {
+        var a = self.decimal
+        let c = decNumberClass(&a, &Decimal.context)
+        switch c {
+        case DEC_CLASS_SNAN: return .signalingNaN
+        case DEC_CLASS_QNAN: return .quietNaN
+        case DEC_CLASS_NEG_INF: return .negativeInfinity
+        case DEC_CLASS_POS_INF: return .positiveInfinity
+        case DEC_CLASS_NEG_ZERO: return .negativeZero
+        case DEC_CLASS_POS_ZERO: return .positiveZero
+        case DEC_CLASS_NEG_NORMAL: return .negativeNormal
+        case DEC_CLASS_POS_NORMAL: return .positiveNormal
+        case DEC_CLASS_POS_SUBNORMAL: return .positiveSubnormal
+        case DEC_CLASS_NEG_SUBNORMAL: return .negativeSubnormal
+        default: return .positiveZero
+        }
     }
     
     /// Returns all digits of the binary-coded decimal (BCD) digits of the number with
@@ -372,7 +390,7 @@ public struct Decimal {
         return Decimal(a)
     }
     
-    public func abs () -> Decimal {
+    public var abs : Decimal {
         var a = decimal
         decNumberAbs(&a, &a, &Decimal.context)
         return Decimal(a)
@@ -518,7 +536,7 @@ public struct Decimal {
     
     public func logical () -> Decimal {
         // converts decimal numbers to logical
-        return integer.abs().convert(fromBase: 10, toBase: 2)
+        return integer.abs.convert(fromBase: 10, toBase: 2)
     }
     
     public func base10 () -> Decimal {
@@ -782,7 +800,7 @@ extension Decimal {
     private static func asin(res: inout Decimal, x: Decimal) {
         if x.isNaN { res.setNAN(); return }
         
-        var abx = x.abs() //dn_abs(&abx, x);
+        var abx = x.abs //dn_abs(&abx, x);
         if abx > Decimal.one { res.setNAN(); return }
         
         // res = 2*atan(x/(1+sqrt(1-x*x)))
@@ -798,7 +816,7 @@ extension Decimal {
     private static func acos(res: inout Decimal, x: Decimal) {
         if x.isNaN { res.setNAN(); return }
         
-        var abx = x.abs() //dn_abs(&abx, x);
+        var abx = x.abs //dn_abs(&abx, x);
         if abx > Decimal.one { res.setNAN(); return }
         
         // res = 2*atan((1-x)/sqrt(1-x*x))
@@ -951,7 +969,7 @@ extension Decimal {
      */
     private static func sinhcosh(x: Decimal, sinhv: inout Decimal?, coshv: inout Decimal?) {
         if sinhv != nil {
-            if x.abs() < 0.5 {
+            if x.abs < 0.5 {
                 var u = Expm1(x)
                 let t = u / Decimal.two // dn_div2(&t, &u);
                 u += Decimal.one    // dn_inc(&u);
@@ -1053,7 +1071,7 @@ extension Decimal {
         let x = self
         var res = Decimal.zero
         if x.isNaN { return Decimal.NaN }
-        var y = x.abs()
+        var y = x.abs
         if y == Decimal.one {
             if x.isNegative { res.setNINF(); return res }
             return Decimal.infinity
@@ -1100,7 +1118,7 @@ extension Decimal {
         let a = ceil( 1.25 * ndp / Darwin.log10( 2.0 * acos(-1.0) ) )
         
         // Handle improper arguments.
-        if t.abs() > 1.0e8 {
+        if t.abs > 1.0e8 {
             print("gamma: argument is too large")
             return Decimal.infinity
         } else if t.isInteger && t <= 0 {
@@ -1199,7 +1217,7 @@ extension Decimal {
 extension Decimal : AbsoluteValuable {
     
     public static func abs (_ a: Decimal) -> Decimal {
-        return a.abs()
+        return a.abs
     }
     
 }
@@ -1309,7 +1327,7 @@ extension Decimal : ExpressibleByStringLiteral {
 // Convenience functions
 //
 
-extension Decimal : RealOperations {
+extension Decimal {
     
     public func sqr() -> Decimal { return self * self }
     public var ² : Decimal { return sqr() }
@@ -1407,8 +1425,8 @@ extension Decimal {
     static public func |= (a: inout Decimal, b: Decimal) { a = a | b }
     static public func ^= (a: inout Decimal, b: Decimal) { a = a ^ b }
     
-    static public func << (a: Decimal, b: Decimal) -> Decimal { return a.shift(b.abs()) }
-    static public func >> (a: Decimal, b: Decimal) -> Decimal { return a.shift(-b.abs()) }
+    static public func << (a: Decimal, b: Decimal) -> Decimal { return a.shift(b.abs) }
+    static public func >> (a: Decimal, b: Decimal) -> Decimal { return a.shift(-b.abs) }
     
 }
 
