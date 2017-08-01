@@ -273,7 +273,7 @@ extension Complex : ExpressibleByStringLiteral {
             let imaginary = "i"
             var number = ""
             var inumber = ""
-            var ch = vs.remove(at: vs.startIndex)
+            var ch = vs[vs.startIndex]
             var iPresent = false
             
             // remove leading sign -- if any

@@ -143,8 +143,9 @@ class ViewController: UIViewController {
         print("gamma(1/2)² = \(x12.gamma().²)")
         
         // Test some complex stuff
-        let c1 = CDecimal(1, 0)
-        print(c1)
+        let c1 = CDecimal(1, 1)
+        let c2 : CDecimal = "2.5 - 10i"
+        print("c1 = \(c1); c2 = \(c2); c1*c2 = \(c1*c2)")
     }
 
     override func didReceiveMemoryWarning() {
