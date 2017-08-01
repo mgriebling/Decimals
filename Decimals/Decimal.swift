@@ -490,6 +490,16 @@ public struct Decimal {
         return Decimal(a)
     }
     
+    /// returns sqrt(self² + y²)
+    public func hypot(y : Decimal) -> Decimal {
+        var x = self.abs
+        let y = y.abs
+        var t = x.min(y)
+        x = x.max(y)
+        t /= x
+        return x*(1+t*t).sqrt()
+    }
+    
     
     // MARK: - Logical Operations
     

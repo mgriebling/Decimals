@@ -11,8 +11,8 @@ import Foundation
 extension Decimal : RealType {
     
     public func atan2(_ y: Decimal) -> Decimal { return self.arcTan2(b:y) }
-    public func hypot(_ arg: Decimal) -> Decimal { return Decimal.zero }  // stub
-    public func log() -> Decimal { return self.ln() }
+    public func hypot(_ arg: Decimal) -> Decimal { return self.hypot(y:arg) }
+    public func ln() -> Decimal { return self.ln() }
 
     public var isSignaling: Bool { return self.isSpecial }
     public var isNormal: Bool    { return self.isNormal }
