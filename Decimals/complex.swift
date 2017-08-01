@@ -265,15 +265,25 @@ extension Complex : ExpressibleByStringLiteral {
     //
     public init(stringLiteral s: String) {
         var vs = s.replacingOccurrences(of: " ", with: "").lowercased()  // remove all spaces & make lowercase
+        var number = ""
+        var inumber = ""
+        let imaginary = "i"
+        
+        func processNumber() {
+            if let _ = vs.range(of: imaginary) {
+                inumber = number + vs 	// transfer the sign
+                number = ""				// clear the real part
+            } else {
+                number += vs			// copy the number
+            }
+        }
+        
         self.init()
         if !vs.isEmpty {
             // break apart the string into real and imaginary pieces
             let signChars = CharacterSet(charactersIn: "+-")
             let exponent = "e"
-            let imaginary = "i"
-            var number = ""
-            var inumber = ""
-            var ch = vs.remove(at: vs.startIndex)
+            var ch = vs[vs.startIndex]
             var iPresent = false
             
             // remove leading sign -- if any
@@ -292,12 +302,7 @@ extension Complex : ExpressibleByStringLiteral {
                         inumber = vs.substring(from: range.lowerBound)
                     } else {
                         // Only one number exists
-                        if let _ = vs.range(of: imaginary) {
-                            inumber = number + vs 	// transfer the sign
-                            number = ""				// clear the real part
-                        } else {
-                            number += vs			// copy the number
-                        }
+                        processNumber()
                     }
                 } else {
                     // This is the start of the second number
@@ -306,12 +311,7 @@ extension Complex : ExpressibleByStringLiteral {
                 }
             } else {
                 // only one number exists
-                if let _ = vs.range(of: imaginary) {
-                    inumber = number + vs 	// transfer the sign
-                    number = ""				// clear the real part
-                } else {
-                    number += vs			// copy the number
-                }
+                processNumber()
             }
 
             re = T(number)!
