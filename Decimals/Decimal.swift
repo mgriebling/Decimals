@@ -158,7 +158,8 @@ public struct Decimal {
         return nil   // Error illegal radix character
     }
     
-    public init?(_ s: String, digits: Int = Decimal.nominalDigits, radix: Int = 10) {
+    public init?(_ s: String, digits: Int = 0, radix: Int = 10) {
+        let digits = digits == 0 ? Decimal.nominalDigits : digits
         initContext(digits: digits)
         let ls = s.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores
         if radix == 10 {
