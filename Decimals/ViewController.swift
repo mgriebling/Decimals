@@ -25,8 +25,8 @@ class ViewController: UIViewController {
         print("Set = \(c)")
         
         // AbsoluteValuable test
-        let d = Decimal("-1.23456")!
-        print("abs(-1.23456) = \(abs(d))")
+        let _ = Decimal("-1.23456")!
+//        print("abs(-1.23456) = \(abs(d))")
         
         // Create Apple Decimal and convert to our Decimal
         let oldDigits = Decimal.digits

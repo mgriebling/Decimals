@@ -10,6 +10,15 @@ import Foundation
 
 extension Decimal : RealType {
     
+    public static func - (_ a: Decimal, _ b: Decimal) -> Decimal {
+        return a.sub(b)
+    }
+    
+    
+    public static prefix func - (_ a: Decimal) -> Decimal {
+        return a.negate()
+    }
+    
     public func atan2(_ y: Decimal) -> Decimal { return self.arcTan2(b:y) }
     public func hypot(_ arg: Decimal) -> Decimal { return self.hypot(y:arg) }
 

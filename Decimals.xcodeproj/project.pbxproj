@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2F2D3B4F2034946300EE4DE3 /* DecNumbers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F2D3B502034946300EE4DE3 /* DecNumbers.framework */; };
+		2F2D3B522034948000EE4DE3 /* DecNumbers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2F2D3B502034946300EE4DE3 /* DecNumbers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2F2D3B532034A62500EE4DE3 /* DecNumbers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F2D3B502034946300EE4DE3 /* DecNumbers.framework */; };
+		2F2D3B542034BFE000EE4DE3 /* DecNumbers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2F2D3B502034946300EE4DE3 /* DecNumbers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2FF796B21B9F0383004144EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796B11B9F0383004144EA /* AppDelegate.swift */; };
 		2FF796B41B9F0383004144EA /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796B31B9F0383004144EA /* ViewController.swift */; };
 		2FF796B71B9F0383004144EA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2FF796B51B9F0383004144EA /* Main.storyboard */; };
@@ -16,8 +20,6 @@
 		2FF796E01B9F03F9004144EA /* Decimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796D51B9F03F9004144EA /* Decimal.swift */; };
 		2FF796E51B9F03F9004144EA /* GenericMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF796DD1B9F03F9004144EA /* GenericMath.swift */; };
 		477C4CD11F2E2E3F00BEBC4B /* CDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 477C4CD01F2E2E3F00BEBC4B /* CDecimal.swift */; };
-		477C4CD61F307AF600BEBC4B /* DecNumbers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 477C4CD51F307AF600BEBC4B /* DecNumbers.framework */; };
-		477C4CD71F307AFD00BEBC4B /* DecNumbers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 477C4CD51F307AF600BEBC4B /* DecNumbers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		47EE20261F2E264300FD70A8 /* complex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47EE20251F2E264300FD70A8 /* complex.swift */; };
 /* End PBXBuildFile section */
 
@@ -32,19 +34,30 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		2F2D3B512034947000EE4DE3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2F2D3B522034948000EE4DE3 /* DecNumbers.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		47242BF31F2C9970009301DC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				477C4CD71F307AFD00BEBC4B /* DecNumbers.framework in CopyFiles */,
+				2F2D3B542034BFE000EE4DE3 /* DecNumbers.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2F2D3B502034946300EE4DE3 /* DecNumbers.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DecNumbers.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FF796AE1B9F0383004144EA /* Decimals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Decimals.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FF796B11B9F0383004144EA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2FF796B31B9F0383004144EA /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -59,7 +72,6 @@
 		2FF796D51B9F03F9004144EA /* Decimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Decimal.swift; sourceTree = "<group>"; };
 		2FF796DD1B9F03F9004144EA /* GenericMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenericMath.swift; sourceTree = "<group>"; };
 		477C4CD01F2E2E3F00BEBC4B /* CDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CDecimal.swift; sourceTree = "<group>"; };
-		477C4CD51F307AF600BEBC4B /* DecNumbers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DecNumbers.framework; path = "../../../Library/Developer/Xcode/DerivedData/Decimals-clgpzvvbhqplqqflcpaghviuugyc/Build/Products/Debug-iphonesimulator/DecNumbers.framework"; sourceTree = "<group>"; };
 		47EE20251F2E264300FD70A8 /* complex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = complex.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -68,7 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				477C4CD61F307AF600BEBC4B /* DecNumbers.framework in Frameworks */,
+				2F2D3B532034A62500EE4DE3 /* DecNumbers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,6 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F2D3B4F2034946300EE4DE3 /* DecNumbers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,7 +144,7 @@
 		47242BF01F2C995B009301DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				477C4CD51F307AF600BEBC4B /* DecNumbers.framework */,
+				2F2D3B502034946300EE4DE3 /* DecNumbers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -164,6 +177,7 @@
 				2FF796BE1B9F0383004144EA /* Sources */,
 				2FF796BF1B9F0383004144EA /* Frameworks */,
 				2FF796C01B9F0383004144EA /* Resources */,
+				2F2D3B512034947000EE4DE3 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -182,17 +196,19 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = "Solinst Canada";
 				TargetAttributes = {
 					2FF796AD1B9F0383004144EA = {
 						CreatedOnToolsVersion = 7.0;
-						DevelopmentTeam = 6389FT2N69;
-						LastSwiftMigration = 0820;
+						DevelopmentTeam = 37VFB869JC;
+						LastSwiftMigration = 0920;
+						ProvisioningStyle = Automatic;
 					};
 					2FF796C11B9F0383004144EA = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 0820;
+						DevelopmentTeam = 37VFB869JC;
+						LastSwiftMigration = 0920;
 						TestTargetID = 2FF796AD1B9F0383004144EA;
 					};
 				};
@@ -296,14 +312,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -343,14 +365,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -381,14 +409,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				DEVELOPMENT_TEAM = 6389FT2N69;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 37VFB869JC;
 				INFOPLIST_FILE = Decimals/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.Decimals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -397,13 +429,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				DEVELOPMENT_TEAM = 6389FT2N69;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 37VFB869JC;
 				INFOPLIST_FILE = Decimals/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.Decimals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Decimals/Decimals-Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -411,11 +447,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 37VFB869JC;
 				INFOPLIST_FILE = DecimalsTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.DecimalsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Decimals.app/Decimals";
 			};
 			name = Debug;
@@ -424,11 +462,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 37VFB869JC;
 				INFOPLIST_FILE = DecimalsTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.solinst.DecimalsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Decimals.app/Decimals";
 			};
 			name = Release;

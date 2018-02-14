@@ -37,7 +37,7 @@ public struct Decimal {
     
     // Class properties
     static let maximumDigits = Int(DECNUMDIGITS)
-    static let nominalDigits = 38  // number of decimal digits in Apple's Decimal type
+    public static let nominalDigits = 38  // number of decimal digits in Apple's Decimal type
     static var context = decContext()
     static var defaultAngularMeasure = AngularMeasure.radians
     
@@ -152,7 +152,7 @@ public struct Decimal {
     
     private static func digitToInt(_ digit: Character) -> Int? {
         let radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        if let digitIndex = radixDigits.characters.index(of: digit) {
+        if let digitIndex = radixDigits.index(of: digit) {
             return radixDigits.distance(from: radixDigits.startIndex, to:digitIndex)
         }
         return nil   // Error illegal radix character
@@ -160,7 +160,7 @@ public struct Decimal {
     
     public init?(_ s: String, digits: Int = Decimal.nominalDigits, radix: Int = 10) {
         initContext(digits: digits)
-        var ls = s.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores
+        let ls = s.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores
         if radix == 10 {
             // use library function for string conversion
             decNumberFromString(&decimal, ls, &Decimal.context)
@@ -168,7 +168,7 @@ public struct Decimal {
             // convert non-base 10 string to a Decimal number
             var number = Decimal.zero
             let radixNumber = Decimal(radix)
-            for digit in ls.characters {
+            for digit in ls {
                 if let digitNumber = Decimal.digitToInt(digit) {
                     number = number * radixNumber + Decimal(digitNumber)
                 } else {
@@ -185,7 +185,9 @@ public struct Decimal {
         decNumberSetBCD(&decimal, &s, UInt32(s.count))
         var exp = decNumber()
         decNumberFromInt32(&exp, Int32(exponent))
-        decNumberScaleB(&decimal, &decimal, &exp, &Decimal.context)
+        var result = decNumber()
+        decNumberScaleB(&result, &decimal, &exp, &Decimal.context)
+        decimal = result
     }
     
     fileprivate init(_ d: decNumber) {
@@ -208,7 +210,7 @@ public struct Decimal {
         } else {
             let offset = n - 10
             let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            let digit = letters[letters.characters.index(letters.startIndex, offsetBy: offset)]
+            let digit = letters[letters.index(letters.startIndex, offsetBy: offset)]
             return String(digit)
         }
     }
@@ -219,7 +221,7 @@ public struct Decimal {
         let miniDigits = "₀₁₂₃₄₅₆₇₈₉"
         while radix > 0 {
             let offset = radix % 10; radix /= 10
-            let digit = miniDigits[miniDigits.characters.index(miniDigits.startIndex, offsetBy: offset)]
+            let digit = miniDigits[miniDigits.index(miniDigits.startIndex, offsetBy: offset)]
             result = String(digit) + result
         }
         return result
@@ -325,8 +327,9 @@ public struct Decimal {
         var local = decimal
         var result = decNumber()
         decNumberNextPlus(&result, &local, &Decimal.context)
-        decNumberSubtract(&result, &result, &local, &Decimal.context)
-        return Decimal(result)
+        var result2 = decNumber()
+        decNumberSubtract(&result2, &result, &local, &Decimal.context)
+        return Decimal(result2)
     }
     
     private let DECSPECIAL = UInt8(DECINF|DECNAN|DECSNAN)
@@ -339,7 +342,8 @@ public struct Decimal {
     public var isSpecial: Bool   { return decimal.bits & DECSPECIAL != 0 }
     public var isInteger: Bool {
         var local = decimal
-        decNumberToIntegralExact(&local, &local, &Decimal.context)
+        var result = decNumber()
+        decNumberToIntegralExact(&result, &local, &Decimal.context)
         if Decimal.context.status & UInt32(DEC_Inexact) != 0 {
             decContextClearStatus(&Decimal.context, UInt32(DEC_Inexact)); return false
         }
@@ -351,84 +355,96 @@ public struct Decimal {
     /// Removes all trailing zeros without changing the value of the number.
     public func normalize () -> Decimal {
         var a = decimal
-        decNumberNormalize(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberNormalize(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     /// Converts the number to an integer representation without any fractional digits.
     /// The active rounding mode is used during this conversion.
     public var integer : Decimal {
         var a = decimal
-        decNumberToIntegralValue(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberToIntegralValue(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     public func remainder (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberRemainder(&a, &a,  &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberRemainder(&result, &a,  &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func negate () -> Decimal {
         var a = decimal
-        decNumberMinus(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberMinus(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     public func max (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberMax(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberMax(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func min (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberMin(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberMin(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public var abs : Decimal {
         var a = decimal
-        decNumberAbs(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberAbs(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     public func add (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberAdd(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberAdd(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func sub (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberSubtract(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberSubtract(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func mul (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberMultiply(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberMultiply(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func div (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberDivide(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberDivide(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func idiv (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberDivideInteger(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberDivideInteger(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     /// Returns *self* × *b* + *c* or multiply accumulate with only the final rounding.
@@ -436,8 +452,9 @@ public struct Decimal {
         var b = b
         var c = c
         var a = decimal
-        decNumberFMA(&a, &a, &b.decimal, &c.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberFMA(&result, &a, &b.decimal, &c.decimal, &Decimal.context)
+        return Decimal(result)
     }
 
     /// Rounds to *digits* places where negative values limit the decimal places
@@ -445,8 +462,9 @@ public struct Decimal {
     public func round (_ digits: Int) -> Decimal {
         var a = decimal
         var b = Decimal(digits)
-        decNumberRescale(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberRescale(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     // MARK: - Scientific Operations
@@ -454,40 +472,46 @@ public struct Decimal {
     public func pow (_ b: Decimal) -> Decimal {
         var b = b
         var a = decimal
-        decNumberPower(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberPower(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result)
     }
     
     public func exp () -> Decimal {
         var a = decimal
-        decNumberExp(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberExp(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     /// Natural logarithm
     public func ln () -> Decimal {
         var a = decimal
-        decNumberLn(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberLn(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     public func log10 () -> Decimal {
         var a = decimal
-        decNumberLog10(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberLog10(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     /// Returns self * 10 ** b
     public func scaleB (_ b: Decimal) -> Decimal {
         var a = decimal
-        decNumberLogB(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberLogB(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     public func sqrt () -> Decimal {
         var a = decimal
-        decNumberSquareRoot(&a, &a, &Decimal.context)
-        return Decimal(a)
+        var result = decNumber()
+        decNumberSquareRoot(&result, &a, &Decimal.context)
+        return Decimal(result)
     }
     
     /// returns sqrt(self² + y²)
@@ -506,42 +530,48 @@ public struct Decimal {
     public func or (_ b: Decimal) -> Decimal {
         var b = b.logical()
         var a = logical().decimal
-        decNumberOr(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberOr(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func and (_ b: Decimal) -> Decimal {
         var b = b.logical()
         var a = logical().decimal
-        decNumberAnd(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberAnd(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func xor (_ b: Decimal) -> Decimal {
         var b = b.logical()
         var a = logical().decimal
-        decNumberXor(&a, &a, &b.decimal, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberXor(&result, &a, &b.decimal, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func not () -> Decimal {
         var a = logical().decimal
-        decNumberInvert(&a, &a, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberInvert(&result, &a, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func shift (_ bits: Decimal) -> Decimal {
         var bits = bits
         var a = logical().decimal
-        decNumberShift(&a, &a, &bits.decimal, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberShift(&result, &a, &bits.decimal, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func rotate (_ bits: Decimal) -> Decimal {
         var bits = bits
         var a = logical().decimal
-        decNumberRotate(&a, &a, &bits.decimal, &Decimal.context)
-        return Decimal(a).base10()
+        var result = decNumber()
+        decNumberRotate(&result, &a, &bits.decimal, &Decimal.context)
+        return Decimal(result).base10()
     }
     
     public func logical () -> Decimal {
@@ -1125,7 +1155,7 @@ extension Decimal {
         Decimal.digits = Int(working_prec)
         
         print("t = \(t)")
-        let a = ceil( 1.25 * ndp / Darwin.log10( 2.0 * acos(-1.0) ) )
+        let a = ceil( 1.25 * ndp / Darwin.log10( 2.0 * Darwin.acos(-1.0) ) )
         
         // Handle improper arguments.
         if t.abs > 1.0e8 {
@@ -1224,24 +1254,30 @@ extension Decimal {
 // Add global support for abs().
 //
 
-extension Decimal : AbsoluteValuable {
-    
-    public static func abs (_ a: Decimal) -> Decimal {
-        return a.abs
-    }
-    
-}
+//extension Decimal : AbsoluteValuable {
+//
+//    public var magnitude: Decimal {
+//        return 0
+//    }
+//
+//    public typealias Magnitude = Decimal
+//
+//    public static func abs (_ a: Decimal) -> Decimal {
+//        return a.abs
+//    }
+//
+//}
 
 //
 // Support the SignedNumber protocol.
 //
 
-extension Decimal : SignedNumber {
-    
-    static public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
-    static public prefix func - (a: Decimal) -> Decimal { return a.negate() }
-    
-}
+//extension Decimal : SignedNumber {
+//
+//    static public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
+//    static public prefix func - (a: Decimal) -> Decimal { return a.negate() }
+//
+//}
 
 //
 // Support the print() command.
@@ -1267,8 +1303,9 @@ extension Decimal : Comparable {
     public func cmp (_ b: Decimal) -> ComparisonResult {
         var b = b
         var a = decimal
-        decNumberCompare(&a, &a, &b.decimal, &Decimal.context)
-        let ai = decNumberToInt32(&a, &Decimal.context)
+        var result = decNumber()
+        decNumberCompare(&result, &a, &b.decimal, &Decimal.context)
+        let ai = decNumberToInt32(&result, &Decimal.context)
         switch ai {
         case -1: return .orderedAscending
         case 0:  return .orderedSame
@@ -1344,19 +1381,19 @@ extension Decimal {
     
 }
 
-extension Decimal : Strideable {
-    
-    public typealias Stride = Decimal
-    
-    public func advanced(by stride: Stride) -> Decimal {
-        return self+stride
-    }
-    
-    public func distance(to x: Decimal) -> Stride {
-        return Decimal.abs(self-x)
-    }
-    
-}
+//extension Decimal : Strideable {
+//    
+//    public typealias Stride = Decimal
+//    
+//    public func advanced(by stride: Stride) -> Decimal {
+//        return self+stride
+//    }
+//    
+//    public func distance(to x: Decimal) -> Stride {
+//        return Decimal.abs(self-x)
+//    }
+//    
+//}
 
 extension Decimal {
     

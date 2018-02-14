@@ -92,6 +92,10 @@ extension Double : RealType {
     public func atan2(_ y:Double)->Double { return Foundation.atan2(self, y) }
     public func hypot(_ y:Double)->Double { return Foundation.hypot(self, y) }
     public func pow(_ y:Double)->Double { return Foundation.pow(self, y) }
+    
+    public var isSignMinus: Bool { return self.sign == .minus }
+    public var isSignaling: Bool { return self.isSignalingNaN }
+    
     // these ought to be static let
     // but give users a chance to overwrite it
     static var PI = 3.14159265358979323846264338327950288419716939937510
@@ -120,6 +124,10 @@ extension Float : RealType {
     public func hypot(_ y:Float)->Float { return Foundation.hypot(self, y) }
     public func atan2(_ y:Float)->Float { return Foundation.atan2(self, y) }
     public func pow(_ y:Float)->Float { return Foundation.pow(self, y) }
+    
+    public var isSignMinus: Bool { return self.sign == .minus }
+    public var isSignaling: Bool { return self.isSignalingNaN }
+    
     // these ought to be static let
     // but give users a chance to overwrite it
     static var PI:Float = 3.14159265358979323846264338327950288419716939937510
@@ -298,16 +306,16 @@ extension Complex : ExpressibleByStringLiteral {
                     let newRange = Range(uncheckedBounds: (start, vs.endIndex))
                     if let range = vs.rangeOfCharacter(from: signChars, options: [], range: newRange) {
                         // This is likely the start of the second number
-                        number += vs.substring(to: range.lowerBound)
-                        inumber = vs.substring(from: range.lowerBound)
+                        number += vs[...range.lowerBound]
+                        inumber = String(vs[range.lowerBound...])
                     } else {
                         // Only one number exists
                         processNumber()
                     }
                 } else {
                     // This is the start of the second number
-                    number += vs.substring(to: range.lowerBound)
-                    inumber = vs.substring(from: range.lowerBound)
+                    number += vs[...range.lowerBound]
+                    inumber = String(vs[range.lowerBound...])
                 }
             } else {
                 // only one number exists
