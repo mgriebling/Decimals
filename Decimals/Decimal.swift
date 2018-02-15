@@ -1185,7 +1185,7 @@ extension Decimal {
             
             // quick exit with factorial if integer
             if t.isInteger {
-                var temp = Decimal.one
+                var temp : Decimal = Decimal.one
                 for k in 2..<t.int {
                     temp *= Decimal(k)
                 }
@@ -1251,6 +1251,25 @@ extension Decimal {
     
 }
 
+extension Decimal : Numeric {
+    
+    public typealias Magnitude = Decimal
+    public var magnitude : Decimal { return self.abs }
+    
+    public init?<T>(exactly source: T) where T : BinaryInteger {
+        self.init(Int(source))
+    }
+    
+    public static func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
+    public static func *= (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.mul(rhs) }
+    public static prefix func + (lhs: Decimal) -> Decimal { return lhs }
+    public static func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
+    public static func += (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.add(rhs) }
+//    public static func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
+    public static func -= (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.sub(rhs) }
+    
+}
+
 //
 // Add global support for abs().
 //
@@ -1270,10 +1289,10 @@ extension Decimal {
 //}
 
 //
-// Support the SignedNumber protocol.
+// Support the SignedNumeric protocol.
 //
 
-//extension Decimal : SignedNumber {
+//extension Decimal : SignedNumeric {
 //
 //    static public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
 //    static public prefix func - (a: Decimal) -> Decimal { return a.negate() }
@@ -1444,14 +1463,14 @@ precedencegroup ExponentPrecedence {
 extension Decimal {
     
     static public func % (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.remainder(rhs) }
-    static public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
-    static public func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
+//    static public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }
+//    static public func + (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.add(rhs) }
     static public func / (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.div(rhs) }
-    static public prefix func + (a: Decimal) -> Decimal { return a }
+//    static public prefix func + (a: Decimal) -> Decimal { return a }
     
-    static public func -= (a: inout Decimal, b: Decimal) { a = a - b }
-    static public func += (a: inout Decimal, b: Decimal) { a = a + b }
-    static public func *= (a: inout Decimal, b: Decimal) { a = a * b }
+//    static public func -= (a: inout Decimal, b: Decimal) { a = a - b }
+//    static public func += (a: inout Decimal, b: Decimal) { a = a + b }
+//    static public func *= (a: inout Decimal, b: Decimal) { a = a * b }
     static public func /= (a: inout Decimal, b: Decimal) { a = a / b }
     static public func %= (a: inout Decimal, b: Decimal) { a = a % b }
     static public func **= (a: inout Decimal, b: Decimal) { a = a ** b }
