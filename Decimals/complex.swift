@@ -306,7 +306,7 @@ extension Complex : ExpressibleByStringLiteral {
                     let newRange = Range(uncheckedBounds: (start, vs.endIndex))
                     if let range = vs.rangeOfCharacter(from: signChars, options: [], range: newRange) {
                         // This is likely the start of the second number
-                        number += vs[...range.lowerBound]
+                        number += vs[...vs.index(before:range.lowerBound)]
                         inumber = String(vs[range.lowerBound...])
                     } else {
                         // Only one number exists
@@ -314,7 +314,7 @@ extension Complex : ExpressibleByStringLiteral {
                     }
                 } else {
                     // This is the start of the second number
-                    number += vs[...range.lowerBound]
+                    number += vs[...vs.index(before:range.lowerBound)]
                     inumber = String(vs[range.lowerBound...])
                 }
             } else {
