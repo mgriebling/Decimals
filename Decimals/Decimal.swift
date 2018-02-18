@@ -74,7 +74,7 @@ public struct Decimal {
     
     fileprivate static var infinity : Decimal { var x = zero; x.setINF(); return x }
     fileprivate static var Nil : Decimal?
-    fileprivate static var NaN : Decimal { var x = zero; x.setNAN(); return x }
+    public static var NaN : Decimal { var x = zero; x.setNAN(); return x }
     fileprivate static let _2pi = two * pi
     fileprivate static let pi_2 = pi / two
     
@@ -1267,7 +1267,7 @@ extension Decimal : Numeric {
     public static func += (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.add(rhs) }
 //    public static func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
     public static func -= (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.sub(rhs) }
-    
+    public static func abs(_ n : Decimal) -> Decimal { return n.abs }
 }
 
 //
