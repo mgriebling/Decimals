@@ -72,11 +72,36 @@ public struct Decimal {
     public static let one = Decimal(1)
     public static let two = Decimal(2)
     
-    fileprivate static var infinity : Decimal { var x = zero; x.setINF(); return x }
+    public static var infinity : Decimal { var x = zero; x.setINF(); return x }
     fileprivate static var Nil : Decimal?
     public static var NaN : Decimal { var x = zero; x.setNAN(); return x }
+    public static var sNaN : Decimal { var x = zero; x.setsNAN(); return x }
     fileprivate static let _2pi = two * pi
     fileprivate static let pi_2 = pi / two
+    
+    public static let greatestFiniteMagnitude = Decimal(
+        "9.99999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999e999999999",
+        digits: maximumDigits)!
+    
+    public static var leastNormalMagnitude = Decimal(
+        "9.99999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999" +
+        "9999999999999999999999999999999999999999999999999999999999999999999999999999999e-999999999",
+        digits: maximumDigits)!
+    
+    /// Takes into account infinity and NaN
+    public func isTotallyOrdered(belowOrEqualTo other: Decimal) -> Bool {
+        var b = other
+        var a = decimal
+        var result = decNumber()
+        decNumberCompareTotalMag(&result, &a, &b.decimal, &Decimal.context)
+        let ai = decNumberToInt32(&result, &Decimal.context)
+        return ai <= 0
+    }
     
     public static let radix = 10
     
@@ -100,6 +125,58 @@ public struct Decimal {
     public static var digits : Int {
         get { return Int(context.digits) }
         set { if newValue > 0 && newValue <= maximumDigits { context.digits = Int32(newValue) } }
+    }
+    
+    public var nextUp: Decimal {
+        var a = decimal
+        var result = decNumber()
+        if isNegative {
+            decNumberNextMinus(&result, &a, &Decimal.context)
+        } else {
+            decNumberNextPlus(&result, &a, &Decimal.context)
+        }
+        return Decimal(result)
+    }
+    
+    public mutating func round(_ rule: FloatingPointRoundingRule) {
+        let rounding = Decimal.roundMethod // save current setting
+        switch rule {
+        case .awayFromZero :            Decimal.roundMethod = .up
+        case .down :                    Decimal.roundMethod = .floor
+        case .toNearestOrAwayFromZero:  Decimal.roundMethod = .halfUp
+        case .toNearestOrEven:          Decimal.roundMethod = .halfEven
+        case .towardZero:               Decimal.roundMethod = .down
+        case .up:                       Decimal.roundMethod = .ceiling
+        }
+        var a = decimal
+        var result = decNumber()
+        decNumberToIntegralValue(&result, &a, &Decimal.context)
+        decimal = result
+        Decimal.roundMethod = rounding  // restore original setting
+    }
+    
+    public var significand: Decimal {
+        var a = decimal
+        var zero = Decimal.zero.decimal
+        var result = decNumber()
+        decNumberRescale(&result, &a, &zero, &Decimal.context)
+        return Decimal(result)
+    }
+    
+    public mutating func formRemainder(dividingBy other: Decimal) {
+        var a = decimal
+        var b = other.decimal
+        var result = decNumber()
+        decNumberRemainderNear(&result, &a, &b, &Decimal.context)
+        decimal = result
+    }
+    
+    public mutating func formTruncatingRemainder(dividingBy other: Decimal) {
+        var a = decimal
+        var b = other.decimal
+        var result = decNumber()
+        decNumberRemainder(&result, &a, &b, &Decimal.context)
+        decimal = result
     }
     
     // MARK: - Initialization Methods
@@ -142,6 +219,26 @@ public struct Decimal {
             if int < 0 { x = -x }
             decimal = x.decimal
         }
+    }
+    
+    public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
+        var a = significand
+        var exp = Decimal(exponent)
+        var result = decNumber()
+        decNumberRescale(&result, &a.decimal, &exp.decimal, &Decimal.context)
+        if sign == .minus {
+            decNumberCopyNegate(&decimal, &result)
+        } else {
+            decimal = result
+        }
+    }
+    
+    public init(signOf: Decimal, magnitudeOf: Decimal) {
+        var result = decNumber()
+        var a = magnitudeOf.decimal
+        var sign = signOf.decimal
+        decNumberCopySign(&result, &a, &sign)
+        decimal = result
     }
     
     public init(_ decimal: Foundation.Decimal) {
@@ -341,6 +438,7 @@ public struct Decimal {
     public var isZero: Bool      { return isFinite && decimal.digits == 1 && decimal.lsu.0 == 0 }
     public var isSubnormal: Bool { var n = decimal; return decNumberIsSubnormal(&n, &Decimal.context) == 1 }
     public var isSpecial: Bool   { return decimal.bits & DECSPECIAL != 0 }
+    public var isCanonical: Bool { return true }
     public var isInteger: Bool {
         var local = decimal
         var result = decNumber()
@@ -448,13 +546,13 @@ public struct Decimal {
         return Decimal(result)
     }
     
-    /// Returns *self* × *b* + *c* or multiply accumulate with only the final rounding.
+    /// Returns *self* + *b* x *c* or multiply accumulate with only the final rounding.
     public func mulAcc (_ b: Decimal, c: Decimal) -> Decimal {
         var b = b
         var c = c
         var a = decimal
         var result = decNumber()
-        decNumberFMA(&result, &a, &b.decimal, &c.decimal, &Decimal.context)
+        decNumberFMA(&result, &c.decimal, &b.decimal, &a, &Decimal.context)
         return Decimal(result)
     }
 
@@ -512,6 +610,17 @@ public struct Decimal {
         var a = decimal
         var result = decNumber()
         decNumberSquareRoot(&result, &a, &Decimal.context)
+        return Decimal(result)
+    }
+    
+    public func cbrt () -> Decimal {
+        var a = decimal
+        var b = Decimal(3).decimal
+        var c = Decimal.one.decimal
+        var result = decNumber()
+        decNumberDivide(&result, &c, &b, &Decimal.context)  // get 1/3
+        decNumberCopy(&b, &result)
+        decNumberPower(&result, &a, &b, &Decimal.context)   // self ^ (1/3)
         return Decimal(result)
     }
     
@@ -590,7 +699,7 @@ public struct Decimal {
 // Trigonometric functions
 //
 
-extension Decimal {
+public extension Decimal {
     
     public static var SINCOS_DIGITS : Int { return Decimal.maximumDigits }
     
@@ -878,6 +987,10 @@ extension Decimal {
         self.decimal.bits |= UInt8(DECNAN)
     }
     
+    fileprivate mutating func setsNAN() {
+        self.decimal.bits |= UInt8(DECSNAN)
+    }
+    
     /* Calculate sin and cos of the given number in radians.
      * We need to do some range reduction to guarantee that our Taylor series
      * converges rapidly.
@@ -989,7 +1102,7 @@ extension Decimal {
 // Hyperbolic trig functions
 //
 
-extension Decimal {
+public extension Decimal {
     
     /* exp(x)-1 */
     private static func Expm1(_ x: Decimal) -> Decimal {
@@ -1131,7 +1244,7 @@ extension Decimal {
 // Combination/Permutation functions
 //
 
-extension Decimal {
+public extension Decimal {
     
     /* Calculate permutations:
      * C(x, y) = P(x, y) / y! = x! / ( (x-y)! y! )
@@ -1251,7 +1364,7 @@ extension Decimal {
     
 }
 
-extension Decimal : Numeric {
+extension Decimal : SignedNumeric {
     
     public typealias Magnitude = Decimal
     public var magnitude : Decimal { return self.abs }
@@ -1267,37 +1380,8 @@ extension Decimal : Numeric {
     public static func += (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.add(rhs) }
 //    public static func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
     public static func -= (lhs: inout Decimal, rhs: Decimal) { lhs = lhs.sub(rhs) }
-    public static func abs(_ n : Decimal) -> Decimal { return n.abs }
+
 }
-
-//
-// Add global support for abs().
-//
-
-//extension Decimal : AbsoluteValuable {
-//
-//    public var magnitude: Decimal {
-//        return 0
-//    }
-//
-//    public typealias Magnitude = Decimal
-//
-//    public static func abs (_ a: Decimal) -> Decimal {
-//        return a.abs
-//    }
-//
-//}
-
-//
-// Support the SignedNumeric protocol.
-//
-
-//extension Decimal : SignedNumeric {
-//
-//    static public func - (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.sub(rhs) }
-//    static public prefix func - (a: Decimal) -> Decimal { return a.negate() }
-//
-//}
 
 //
 // Support the print() command.
@@ -1394,28 +1478,14 @@ extension Decimal : ExpressibleByStringLiteral {
 // Convenience functions
 //
 
-extension Decimal {
+public extension Decimal {
     
     public func sqr() -> Decimal { return self * self }
     public var ² : Decimal { return sqr() }
     
 }
 
-//extension Decimal : Strideable {
-//    
-//    public typealias Stride = Decimal
-//    
-//    public func advanced(by stride: Stride) -> Decimal {
-//        return self+stride
-//    }
-//    
-//    public func distance(to x: Decimal) -> Stride {
-//        return Decimal.abs(self-x)
-//    }
-//    
-//}
-
-extension Decimal {
+public extension Decimal {
     
     // MARK: - Archival Operations
     
@@ -1460,7 +1530,7 @@ precedencegroup ExponentPrecedence {
 // Mathematical operator definitions
 //
 
-extension Decimal {
+public extension Decimal {
     
     static public func % (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.remainder(rhs) }
 //    static public func * (lhs: Decimal, rhs: Decimal) -> Decimal { return lhs.mul(rhs) }

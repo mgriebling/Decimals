@@ -72,6 +72,7 @@ public protocol RealType {
     func ln()->Self
     func sin()->Self
     func sqrt()->Self
+    func cbrt()->Self
     func hypot(_: Self)->Self
     func atan2(_: Self)->Self
     func pow(_: Self)->Self
@@ -80,70 +81,71 @@ public protocol RealType {
 //    static var epsilon:Self { get }
 }
 
-// Double is default since floating-point literals are Double by default
-extension Double : RealType {
-
-    public var abs:Double { return Swift.abs(self) }
-    public func cos()->Double { return Foundation.cos(self) }
-    public func exp()->Double { return Foundation.exp(self) }
-    public func ln()->Double { return Foundation.log(self) }
-    public func sin()->Double { return Foundation.sin(self) }
-    public func sqrt()->Double { return Foundation.sqrt(self) }
-    public func atan2(_ y:Double)->Double { return Foundation.atan2(self, y) }
-    public func hypot(_ y:Double)->Double { return Foundation.hypot(self, y) }
-    public func pow(_ y:Double)->Double { return Foundation.pow(self, y) }
-    
-    public var isSignMinus: Bool { return self.sign == .minus }
-    public var isSignaling: Bool { return self.isSignalingNaN }
-    
-    // these ought to be static let
-    // but give users a chance to overwrite it
-    static var PI = 3.14159265358979323846264338327950288419716939937510
-    static var π = PI
-    static var E =  2.718281828459045235360287471352662497757247093699
-    static var e = E
-    static var LN2 = 0.6931471805599453094172321214581765680755001343602552
-    static var LOG2E = 1 / LN2
-    static var LN10 = 2.3025850929940456840179914546843642076011014886287729
-    static var LOG10E = 1/LN10
-    static var SQRT2 = 1.4142135623730950488016887242096980785696718753769480
-    static var SQRT1_2 = 1/SQRT2
-    static var epsilon = 0x1p-52
-    /// self * 1.0i
-    var i:Complex<Double>{ return Complex<Double>(0.0, self) }
-}
-
-// But when explicitly typed you can use Float
-extension Float : RealType {
-    public var abs:Float { return Swift.abs(self) }
-    public func cos()->Float { return Foundation.cos(self) }
-    public func exp()->Float { return Foundation.exp(self) }
-    public func ln()->Float { return Foundation.logf(self) }
-    public func sin()->Float { return Foundation.sin(self) }
-    public func sqrt()->Float { return Foundation.sqrt(self) }
-    public func hypot(_ y:Float)->Float { return Foundation.hypot(self, y) }
-    public func atan2(_ y:Float)->Float { return Foundation.atan2(self, y) }
-    public func pow(_ y:Float)->Float { return Foundation.pow(self, y) }
-    
-    public var isSignMinus: Bool { return self.sign == .minus }
-    public var isSignaling: Bool { return self.isSignalingNaN }
-    
-    // these ought to be static let
-    // but give users a chance to overwrite it
-    static var PI:Float = 3.14159265358979323846264338327950288419716939937510
-    static var π:Float = PI
-    static var E:Float =  2.718281828459045235360287471352662497757247093699
-    static var e:Float = E
-    static var LN2:Float = 0.6931471805599453094172321214581765680755001343602552
-    static var LOG2E:Float = 1 / LN2
-    static var LN10:Float = 2.3025850929940456840179914546843642076011014886287729
-    static var LOG10E:Float = 1/LN10
-    static var SQRT2:Float = 1.4142135623730950488016887242096980785696718753769480
-    static var SQRT1_2:Float = 1/SQRT2
-    static var epsilon:Float = 0x1p-23
-    /// self * 1.0i
-    var i:Complex<Float>{ return Complex<Float>(0.0 as Float, self) }
-}
+//// Double is default since floating-point literals are Double by default
+//extension Double : RealType {
+//
+//    public var abs:Double { return Swift.abs(self) }
+//    public func cos()->Double { return Foundation.cos(self) }
+//    public func exp()->Double { return Foundation.exp(self) }
+//    public func ln()->Double { return Foundation.log(self) }
+//    public func sin()->Double { return Foundation.sin(self) }
+//    public func sqrt()->Double { return Foundation.sqrt(self) }
+//    public func sqrt()->Double { return Foundation.sqrt(self) }
+//    public func atan2(_ y:Double)->Double { return Foundation.atan2(self, y) }
+//    public func hypot(_ y:Double)->Double { return Foundation.hypot(self, y) }
+//    public func pow(_ y:Double)->Double { return Foundation.pow(self, y) }
+//    
+//    public var isSignMinus: Bool { return self.sign == .minus }
+//    public var isSignaling: Bool { return self.isSignalingNaN }
+//    
+//    // these ought to be static let
+//    // but give users a chance to overwrite it
+//    static var PI = 3.14159265358979323846264338327950288419716939937510
+//    static var π = PI
+//    static var E =  2.718281828459045235360287471352662497757247093699
+//    static var e = E
+//    static var LN2 = 0.6931471805599453094172321214581765680755001343602552
+//    static var LOG2E = 1 / LN2
+//    static var LN10 = 2.3025850929940456840179914546843642076011014886287729
+//    static var LOG10E = 1/LN10
+//    static var SQRT2 = 1.4142135623730950488016887242096980785696718753769480
+//    static var SQRT1_2 = 1/SQRT2
+//    static var epsilon = 0x1p-52
+//    /// self * 1.0i
+//    var i:Complex<Double>{ return Complex<Double>(0.0, self) }
+//}
+//
+//// But when explicitly typed you can use Float
+//extension Float : RealType {
+//    public var abs:Float { return Swift.abs(self) }
+//    public func cos()->Float { return Foundation.cos(self) }
+//    public func exp()->Float { return Foundation.exp(self) }
+//    public func ln()->Float { return Foundation.logf(self) }
+//    public func sin()->Float { return Foundation.sin(self) }
+//    public func sqrt()->Float { return Foundation.sqrt(self) }
+//    public func hypot(_ y:Float)->Float { return Foundation.hypot(self, y) }
+//    public func atan2(_ y:Float)->Float { return Foundation.atan2(self, y) }
+//    public func pow(_ y:Float)->Float { return Foundation.pow(self, y) }
+//    
+//    public var isSignMinus: Bool { return self.sign == .minus }
+//    public var isSignaling: Bool { return self.isSignalingNaN }
+//    
+//    // these ought to be static let
+//    // but give users a chance to overwrite it
+//    static var PI:Float = 3.14159265358979323846264338327950288419716939937510
+//    static var π:Float = PI
+//    static var E:Float =  2.718281828459045235360287471352662497757247093699
+//    static var e:Float = E
+//    static var LN2:Float = 0.6931471805599453094172321214581765680755001343602552
+//    static var LOG2E:Float = 1 / LN2
+//    static var LN10:Float = 2.3025850929940456840179914546843642076011014886287729
+//    static var LOG10E:Float = 1/LN10
+//    static var SQRT2:Float = 1.4142135623730950488016887242096980785696718753769480
+//    static var SQRT1_2:Float = 1/SQRT2
+//    static var epsilon:Float = 0x1p-23
+//    /// self * 1.0i
+//    var i:Complex<Float>{ return Complex<Float>(0.0 as Float, self) }
+//}
 
 // el corazon
 public struct Complex<T:RealType>  {
@@ -337,7 +339,7 @@ extension Complex : ExpressibleByStringLiteral {
 
 }
 
-extension Complex {
+public extension Complex {
     
     static public func == (lhs:Complex<T>, rhs:T) -> Bool {
         return lhs.re == rhs && lhs.im.isZero
@@ -471,9 +473,6 @@ extension Complex {
     }
     
     // **, **=
-//    static public func **(lhs:T, rhs:T) -> T {
-//        return lhs.pow(rhs)
-//    }
     static public func ** (lhs:Complex<T>, rhs:Complex<T>) -> Complex<T> {
         return pow(lhs, rhs)
     }
@@ -483,9 +482,6 @@ extension Complex {
     static public func ** (lhs:Complex<T>, rhs:T) -> Complex<T> {
         return pow(lhs, rhs)
     }
-//    static public func **= (lhs:inout T, rhs:T) {
-//        lhs = lhs.pow(rhs)
-//    }
     static public func **= (lhs:inout Complex<T>, rhs:Complex<T>) {
         lhs = pow(lhs, rhs)
     }
@@ -502,6 +498,17 @@ extension Complex {
             return Complex(re, -((-z.re + d)/T(2)).sqrt())
         } else {
             return Complex(re,  ((-z.re + d)/T(2)).sqrt())
+        }
+    }
+    // cbrt(z)
+    static public func cbrt(_ z:Complex<T>) -> Complex<T> {
+        // return z ** 1/3
+        let d = z.re.hypot(z.im)
+        let re = ((z.re + d)/T(3)).cbrt()
+        if z.im.isSignMinus {
+            return Complex(re, -((-z.re + d)/T(3)).cbrt())
+        } else {
+            return Complex(re,  ((-z.re + d)/T(3)).cbrt())
         }
     }
     // cos(z)
@@ -609,7 +616,7 @@ extension Complex {
 }
 
 // typealiases
-typealias Complex64 = Complex<Double>
-typealias Complex32 = Complex<Float>
+//typealias Complex64 = Complex<Double>
+//typealias Complex32 = Complex<Float>
 
 

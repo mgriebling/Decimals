@@ -9,32 +9,6 @@
 import Foundation
 
 extension Decimal : RealType {
-   
-//    public static var nan: Decimal { return Decimal.NaN }
-//    public static var signalingNaN: Decimal { return  Decimal(0) }
-//    public static var greatestFiniteMagnitude: Decimal {  return  Decimal(0) }
-//    public var ulp: Decimal {  return  Decimal(0) }
-//    public static var leastNormalMagnitude: Decimal {  return  Decimal(0) }
-//    public static var leastNonzeroMagnitude: Decimal {  return  Decimal(0) }
-//
-//    public var sign: FloatingPointSign { if self.isNegative { return .minus } else { return .plus } }
-//    public var significand: Decimal {  return  Decimal(0) }
-//
-//    public mutating func formRemainder(dividingBy other: Decimal) -> Decimal {  return  Decimal(0) }
-//    public mutating func formTruncatingRemainder(dividingBy other: Decimal) -> Decimal {  return  Decimal(0) }
-//    public mutating func formSquareRoot() -> Decimal {  return  Decimal(0) }
-//    public mutating func addProduct(_ lhs: Decimal, _ rhs: Decimal) -> Decimal {  return  Decimal(0) }
-//    public mutating func round(_ rule: FloatingPointRoundingRule) -> Decimal {  return  Decimal(0) }
-//
-//    public var nextUp: Decimal {  return  Decimal(0) }
-//
-//    public func isEqual(to other: Decimal) -> Bool { return true }
-//    public func isLess(than other: Decimal) -> Bool {  return true }
-//    public func isLessThanOrEqualTo(_ other: Decimal) -> Bool {  return true }
-//    public func isTotallyOrdered(belowOrEqualTo other: Decimal) -> Bool {  return true }
-//
-//    public var isCanonical: Bool {  return true }
-//    public var isSignalingNaN: Bool { return true }
 
     public static func - (_ a: Decimal, _ b: Decimal) -> Decimal { return a.sub(b) }
     public static prefix func - (_ a: Decimal) -> Decimal { return a.negate() }
@@ -60,6 +34,39 @@ extension Decimal : RealType {
     
 }
 
-typealias CDecimal = Complex<Decimal>
+extension Decimal : Strideable {
+    
+    public func distance(to other: Decimal) -> Decimal.Stride { return self.sub(other) }
+    public func advanced(by n: Decimal.Stride) -> Decimal { return self.add(n) }
+    public typealias Stride = Decimal
+    
+}
+
+extension Decimal : FloatingPoint {
+
+    public static var nan: Decimal { return Decimal.NaN }
+    public static var signalingNaN: Decimal { return Decimal.sNaN }
+    
+    public var ulp: Decimal { return self.eps }
+    
+    public static var leastNonzeroMagnitude: Decimal { return leastNormalMagnitude }
+    
+    public var sign: FloatingPointSign { if self.isNegative { return .minus } else { return .plus } }
+    
+    public mutating func formSquareRoot() { self = self.sqrt() }
+    public mutating func addProduct(_ lhs: Decimal, _ rhs: Decimal) { self = self.mulAcc(lhs, c: rhs) }
+    
+    public func isEqual(to other: Decimal) -> Bool { return self.cmp(other) == .orderedSame }
+    public func isLess(than other: Decimal) -> Bool { return self.cmp(other) == .orderedAscending }
+    public func isLessThanOrEqualTo(_ other: Decimal) -> Bool {
+        let result = self.cmp(other)
+        return result == .orderedSame || result == .orderedAscending
+    }
+    
+    public var isSignalingNaN: Bool { return self.floatingPointClass == .signalingNaN }
+   
+}
+
+public typealias CDecimal = Complex<Decimal>
 
 
