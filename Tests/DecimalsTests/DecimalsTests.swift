@@ -4,7 +4,7 @@ import XCTest
 final class DecimalsTests: XCTestCase {
 
     func testMiscellaneous() {
-        // Test Decimal to int conversions
+        // Test Decimal to int conversions        
         let n = -1234567890123456789
         XCTAssertEqual(n, Decimal128(n).int)
         
