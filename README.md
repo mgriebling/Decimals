@@ -14,7 +14,7 @@ It introduces two arbitrary-precision decimal numbers and six IEEE 754 decimal-e
 All bit-limited data types (i.e., Decimal32, Decimal64, and Decimal128) use operations that only require 32-bit integers, or 64-bits if available
 on the native architecture.  Scientific functions currently require the Double data type.
 
-Here's an simple example that creates a large floating point decimal number and prints it out:
+Here's an simple example that creates two floating point decimal numbers, adds them together, and prints the result:
 
         let number: HDecimal = "12345678901234567890.12345678901234567890"
         let number2 = HDecimal(5432109)
