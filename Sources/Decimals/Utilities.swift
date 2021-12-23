@@ -1,0 +1,455 @@
+//
+//  Utilities.swift
+//  DecNumber
+//
+//  Created by Mike Griebling on 2021-12-17.
+//  Copyright © 2021 Computer Inspirations. All rights reserved.
+//
+
+import Foundation
+import CDecNumber
+import Numerics
+
+// protocol to allow HDecimal, Decimal32, Decimal64, Decimal128 to use some common operations
+public protocol DecReals: Real {
+
+    static var maximumDigits: Int { get }
+    
+    var bcd: [UInt8] { get }
+    var bytes: [UInt8] { get }
+    
+    init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int)
+}
+
+extension DecReals {
+    
+    public var int : Int { Utilities.realToInt(self) }
+    public var uint : UInt { Utilities.realToInt(self) }
+    public var doubleValue: Double { Utilities.doubleValue(of: self) }
+    
+    public var debugDescription: String {
+        var str = ""
+        for b in self.bytes {
+            // transformed to big-endian
+            str += String(format: "%02X", b)
+        }
+        return str
+    }
+    
+}
+
+extension HDecimal : DecReals { }
+extension Decimal32 : DecReals  { }
+extension Decimal64 : DecReals  { }
+extension Decimal128 : DecReals  { }
+
+/// A collection of generic algorithms used in the Decimal functions
+struct Utilities {
+    
+    static let piString = "3.141592653589793238462643383279502884197169399375105820974944592307816406286" +
+    "208998628034825342117067982148086513282306647093844609550582231725359408128481" +
+    "117450284102701938521105559644622948954930381964428810975665933446128475648233" +
+    "786783165271201909145648566923460348610454326648213393607260249141273724587006"
+    
+    static let ln2String = "0.6931471805599453094172321214581765680755001343602552541206800094933936219696" +
+    "94715605863326996418687542001481020570685733685520235758130557032670751635075" +
+    "96193072757082837143519030703862389167347112335011536449795523912047517268157" +
+    "493206515552473413952588295045300709532636664265410423915781495204374"
+    
+    /// Returns a real number for the integer _n_ where the real and
+    /// integer can be any types conforming to the _Real_ and
+    /// _BinaryInteger_ protocols.
+    public static func intToReal<T:BinaryInteger,S:Real>(_ int: T) -> S {
+        var x = S.zero
+        var n = int.magnitude
+        var m = S(1)
+        let d = 1_000_000_000 // base
+        let rd = S(d)
+        let id = T(d)
+        while n != 0 {
+            let qr = n.quotientAndRemainder(dividingBy: T.Magnitude(id))
+            n = qr.quotient
+            if qr.remainder != 0 { x.addProduct(m, S(qr.remainder)) }
+            m *= rd
+        }
+        return int.signum() < 0 ? -x : x
+    }
+    
+    public static func realToInt<R:DecReals, I:FixedWidthInteger>(_ n: R) -> I {
+        if n.magnitude < 1 { return 0 }  // check for fractions, magnitude >= 0
+        if n >= R(I.max) { return I.max }
+        if n <= R(I.min) { return I.min }
+        
+        /// value must be in range of the return integer type
+        let digits = truncateLeadingZeros(round(n.magnitude).bcd) // round any fractions & get bcd digits
+        var x = I.zero
+        for digit in digits {
+            x *= 10
+            x += I(digit)
+        }
+        return n.isNegative ? (0-x) : x
+    }
+    
+    private static func truncateLeadingZeros(_ n: [UInt8]) -> [UInt8] { Array(n.drop{ $0 == 0 }) }
+    
+    public static func doubleToReal<S:DecReals>(_ n: Double) -> S {
+        let digits = min(S.maximumDigits, 17)  // no more than Double precision
+
+        // extract the numbers digits
+        var s = n.significand.magnitude
+        var bcd = [UInt8](repeating: 0, count: digits)
+        for i in 0..<digits {
+            bcd[i] = UInt8(s)
+            s = (s - Double(bcd[i])) * 10
+        }
+
+        // convert to decimal number
+        var x = S(sign: n.sign, bcd: bcd, exponent: -digits+1)
+        x *= Utilities.power(2, to: n.exponent)
+        
+        // round the decimal number for best accuracy
+        let remainder = Double(Int(s)) * Utilities.power(2, to: n.exponent)
+        bcd = [UInt8](repeating: 0, count: digits)  // clear number
+        if remainder >= 5 {
+            bcd[digits-1] = remainder > 10 ? 2 : 1  // add rounding
+        }
+        let round = S(sign: n.sign, bcd: bcd, exponent: -digits+1)
+        return x+round
+    }
+    
+    public static func convert<T:Real> (num: T, fromBase from: Int, toBase base: Int) -> T {
+        let to = T(base)
+        let from = T(from)
+        var y = T.zero
+        var n = num
+        var scale = T(1)
+        while n != 0 {
+            let digit = n.truncatingRemainder(dividingBy: to)
+            y += scale * digit
+            n = trunc(n / to)
+            scale *= from
+        }
+        return y
+    }
+    
+    // Mark: - Standard Functions
+
+    /// Returns sqrt(x² + y²)
+    public static func hypot<T:Real>(x:T, y:T) -> T{
+        var x = abs(x)
+        let y = abs(y)
+        var t = min(x, y)
+        x = max(x, y)
+        t /= x
+        return sqrt(x*(1+t*t))
+    }
+    
+    /// Returns x^exp where x = *num*.
+    /// - Precondition: x ≥ 0
+    public static func power<T:Real>(_ num:T, to exp: Int) -> T {
+        // Zero raised to anything except zero is zero (provided exponent is valid)
+        if num.isZero { return exp == 0 ? 1 : 0 }
+        var z = num
+        var y : T = 1
+        var n = abs(exp)
+        while true {
+            if !n.isMultiple(of: 2) { y *= z }
+            n <<= 1
+            if n == 0 { break }
+            z *= z
+        }
+        return exp < 0 ? 1 / y : y
+    }
+    
+    fileprivate static func digitToInt(_ digit: Character) -> Int? {
+        let radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if let digitIndex = radixDigits.firstIndex(of: digit) {
+            return radixDigits.distance(from: radixDigits.startIndex, to:digitIndex)
+        }
+        return nil   // Error illegal radix character
+    }
+    
+    ///
+    /// Returns the approximate value of decimal number _num_ as a double
+    ///
+    public static func doubleValue<T:DecReals>(of num: T) -> Double {
+        // Return NaN if number is not valid
+        if !num.isValid { return Double.nan }
+        
+        // Extract all the digits out and put them in the double
+        var retVal = 0.0
+        let digits = num.bcd
+        let exp = num.exponent
+        let radix = Double(T.radix)
+        for digit in digits {
+            retVal = fma(retVal, radix, Double(digit))
+        }
+        
+        // Apply the sign
+        if num.isNegative { retVal *= -1 }
+        
+        // Apply the exponent
+        retVal *= Utilities.power(radix, to: Int(exp))
+        return retVal
+    }
+    
+    /// Returns x! = x(x-1)(x-2)...(2)(1) where *x* = *self*.
+    /// - Precondition: *x* ≥ 0
+    public static func factorial<T:DecReals>(_ n: T) -> T {
+        let x = trunc(n)
+        if x.isNegative { return T.zero}    /* out of range */
+        if x < T(2) { return T(1) }     /* 0! & 1! */
+        
+        var f = T(1)
+        for i in stride(from: T(2), through: x, by: 1) {
+            f *= i
+        }
+        return f
+    }
+    
+    public static func root<T:Real>(value: T, n: Int) -> T {
+        if !value.isValid { return value }
+        
+        // oddly-numbered roots of negative numbers should work
+        if value.isNegative && n.isMultiple(of: 2) { return T.nan }
+        
+        let original = abs(value)
+        let root = T(n)
+        
+        // The first guess will be the scaled number
+        var prevGuess = original + 1
+        var newGuess = original / root
+        
+        // Do some Newton's method iterations until we converge
+        var maxIterations = 1000
+        var power = T.zero
+        while newGuess != prevGuess && maxIterations > 0 {
+            prevGuess = newGuess
+            newGuess = original
+            power = Utilities.power(prevGuess, to: n-1)
+            newGuess /= power
+            newGuess -= prevGuess
+            newGuess /= root
+            newGuess += prevGuess
+            maxIterations -= 1
+        }
+        if maxIterations <= 0 { NSLog("Exceeded iteration limit on root evaluation: Error is likely") }
+        
+        // fix the sign
+        return value.isNegative ? -newGuess : newGuess
+    }
+    
+    /// Performs 1/self.
+    public static func inverse<T:Real>(_ value: T) -> T {
+        if !value.isValid { return value }
+        if value.isZero { return T.infinity }
+        return 1/value
+    }
+    
+    // Returns the value e^x where x is the value of the receiver.
+    //
+    public static func exp<T:Real>(_ value: T) -> T {
+        var result = abs(value)
+        if !value.isValid { return value }
+        
+        // Pre-scale the number to aid convergeance
+        var squares = 0
+        while result > 1 {
+            result /= 2
+            squares += 1
+        }
+        
+        // Initialise stuff
+        let one = T(1)
+        var factorialValue = one
+        var prevIteration = one
+        let original = result
+        var powerCopy = result
+        
+        // Set the current value to 1 (the zeroth term)
+        result = one
+        
+        // Add the second term
+        result += original
+        
+        // otherwise iterate the Taylor Series until we obtain a stable solution
+        var i = 2
+        var nextTerm = factorialValue
+        while result != prevIteration {
+            // Get a copy of the current value so that we can see if it changes
+            prevIteration = result
+            
+            // Determine the next term of the series
+            powerCopy *= original
+            
+            factorialValue *= T(i)
+            nextTerm = powerCopy / factorialValue
+            
+            // Add the next term if it is valid
+            if nextTerm.isValid {
+                result += nextTerm
+            }
+            
+            i += 1
+        }
+        
+        // Reverse the prescaling
+        while squares > 0 {
+            result *= result
+            squares -= 1
+        }
+        
+        return value.isNegative ? Utilities.inverse(result) : result
+    }
+
+}
+
+extension Real {
+    
+    fileprivate var isNegative: Bool { self.sign == .minus }
+    fileprivate var isValid: Bool { self.isNormal || self.isSubnormal }
+    
+    // Mark: - Convenience functions
+    public func sqr() -> Self { self * self }
+    public var ² : Self { sqr() }
+    
+    // Mark: - Operators
+    static public func /= (a: inout Self, b: Self) { a = a / b }
+    static public func **= (a: inout Self, b: Self) { a = a ** b }
+    
+    static public func ** (base: Self, power: Int) -> Self { Utilities.power(base, to: power) }
+    static public func ** (base: Int, power: Self) -> Self { Self(base) ** power }
+    static public func ** (base: Self, power: Self) -> Self { pow(base, power)   } 
+    
+}
+
+public protocol DecNumbers { }  // protocol to allow decNumbers, decSingles, decQuads, decDoubles to use some common operations
+
+extension decNumber : DecNumbers { }
+extension decSingle : DecNumbers { }
+extension decDouble : DecNumbers { }
+extension decQuad   : DecNumbers { }
+
+protocol LogicalOperations : Real {
+    
+    associatedtype T : DecNumbers
+    associatedtype R : DecNumbers
+    
+    init(_ s: T)
+    init(_ s: R)
+    
+    func decOr(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!, _ c:UnsafePointer<T>!)
+    func decAnd(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!, _ c:UnsafePointer<T>!)
+    func decXor(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!, _ c:UnsafePointer<T>!)
+    func decShift(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!, _ c:UnsafePointer<T>!)
+    func decRotate(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!, _ c:UnsafePointer<T>!)
+    func decInvert(_ a:UnsafeMutablePointer<T>!, _ b:UnsafePointer<T>!)
+    func decFromString(_ a: UnsafeMutablePointer<R>!, s: String)
+    
+    func logical() -> T
+    func base10(_ a: T) -> Self
+    func negate() -> Self
+    func div (_ b: Self) -> Self
+    func remainder (_ b: Self) -> Self
+    
+    var single: R { get }
+    
+    var zero: T { get }
+    var abs: Self { get }
+}
+
+extension LogicalOperations {
+    
+    // Mark: - Operators
+    static public func % (lhs: Self, rhs: Self) -> Self { lhs.remainder(rhs) }
+    static public func %= (a: inout Self, b: Self) { a = a % b }
+    static public func / (lhs: Self, rhs: Self) -> Self { lhs.div(rhs) }
+    
+    // MARK: - Logical Operations
+    public func or (_ a: Self) -> Self {
+        var b = a.logical()
+        var a = self.logical()
+        var result = zero
+        decOr(&result, &a, &b)
+        return base10(result)
+    }
+
+    public func and (_ a: Self) -> Self {
+        var b = a.logical()
+        var a = self.logical()
+        var result = zero
+        decAnd(&result, &a, &b)
+        return base10(result)
+    }
+
+    public func xor (_ a: Self) -> Self {
+        var b = a.logical()
+        var a = self.logical()
+        var result = zero
+        decXor(&result, &a, &b)
+        return base10(result)
+    }
+
+    public func not () -> Self {
+        var a = self.logical()
+        var result = zero
+        decInvert(&result, &a)
+        return base10(result)
+    }
+
+    public func shift (_ a: Self) -> Self {
+        var b = a.logical()
+        var a = self.logical()
+        var result = zero
+        decShift(&result, &a, &b)
+        return base10(result)
+    }
+
+    public func rotate (_ a: Self) -> Self {
+        var b = a.logical()
+        var a = self.logical()
+        var result = zero
+        decRotate(&result, &a, &b)
+        return base10(result)
+    }
+    
+    /// Converts a decimal number string to a Decimal number
+    public func numberFromString(_ string: String, digits: Int = 0, radix: Int = 10) -> Self? {
+        let ls = string.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores & force uppercase
+        if radix == 10 {
+            // use library function for string conversion
+            var number = single
+            decFromString(&number, s: ls)
+            return Self(number)
+        } else {
+            // convert non-base 10 string to an integral Decimal number
+            var number = Self(0)
+            let radixNumber = Self(radix)
+            for digit in string {
+                if let digitNumber = Utilities.digitToInt(digit) {
+                    number = fma(number, radixNumber, Self(digitNumber))
+                } else {
+                    return nil
+                }
+            }
+            return number
+        }
+    }
+    
+    //
+    // Logical operators
+    //
+    
+    static func & (a: Self, b: Self) -> Self { a.and(b) }
+    static func | (a: Self, b: Self) -> Self { a.or(b) }
+    static func ^ (a: Self, b: Self) -> Self { a.xor(b) }
+    static prefix func ~ (a: Self) -> Self { a.not() }
+
+    static func &= (a: inout Self, b: Self) { a = a & b }
+    static func |= (a: inout Self, b: Self) { a = a | b }
+    static func ^= (a: inout Self, b: Self) { a = a ^ b }
+    
+    static func << (a: Self, b: Self) -> Self { a.shift( b.abs) }
+    static func >> (a: Self, b: Self) -> Self { a.shift( b.abs.negate()) }
+    
+}
