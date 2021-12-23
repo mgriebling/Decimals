@@ -15,11 +15,14 @@ All bit-limited data types (i.e., Decimal32, Decimal64, and Decimal128) use oper
 on the native architecture.  Scientific functions currently require the Double data type.
 
 Here's an simple example that creates a large floating point decimal number and prints it out:
-        ```
+
+        ```swift
         let number: HDecimal = "12345678901234567890.12345678901234567890"
         let number2 = HDecimal(5432109)
         print(number+number2)
         ```
         
 Resulting in:
+
         ```12345678901239999999.123456789012345679```
+
