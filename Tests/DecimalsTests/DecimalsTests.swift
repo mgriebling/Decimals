@@ -4,6 +4,11 @@ import XCTest
 final class DecimalsTests: XCTestCase {
 
     func testMiscellaneous() {
+        let number: HDecimal = "12345678901234567890.12345678901234567890"
+        let number2 = HDecimal(5432109)
+        print(number+number2)
+        print(HDecimal.pi)
+        
         // Test Decimal to int conversions        
         let n = -1234567890123456789
         XCTAssertEqual(n, Decimal128(n).int)
