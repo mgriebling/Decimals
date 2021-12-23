@@ -18,10 +18,10 @@ Here's an simple example that creates two floating point decimal numbers, adds t
 
         let number: HDecimal = "12345678901234567890.12345678901234567890"
         let number2 = HDecimal(5432109)
-        print("\(number)+\(number2) = ", number+number2)
-        print("π = ", HDecimal.pi)
+        print("\(number)+\(number2) =", number+number2)
+        print("π =", HDecimal.pi)
         HDecimal.digits = 128
-        print("2¹⁵⁶ = ", HDecimal(2).pow(HDecimal(156)))
+        print("2¹⁵⁶ =", HDecimal(2).pow(HDecimal(156)))
         
 Resulting in:
 
