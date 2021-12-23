@@ -20,7 +20,5 @@ Here's an simple example that creates two floating point decimal numbers, adds t
         let number2 = HDecimal(5432109)
         print(number+number2)
         
-Resulting in:
-
-        12345678901239999999.123456789012345679
+Resulting in: ```12345678901239999999.123456789012345679
 
