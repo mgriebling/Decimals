@@ -14,17 +14,17 @@ It introduces two arbitrary-precision decimal numbers and six IEEE 754 decimal-e
 All bit-limited data types (i.e., Decimal32, Decimal64, and Decimal128) use operations that only require 32-bit integers, or 64-bits if available
 on the native architecture.  Scientific functions currently require the Double data type.
 
-Here's an simple example that creates two floating point decimal numbers, adds them together, and prints the result along with pi:
+Here's an simple example that creates two floating point decimal numbers, adds them together, and prints the result along with pi and 2**156:
 
         let number: HDecimal = "12345678901234567890.12345678901234567890"
         let number2 = HDecimal(5432109)
-        print(number+number2)
-        print(HDecimal.pi)
+        print("\(number)+\(number2) = ", number+number2)
+        print("π = ", HDecimal.pi)
+        HDecimal.digits = 128
+        print("2¹⁵⁶ = ", HDecimal(2).pow(HDecimal(156)))
         
 Resulting in:
 
-        12345678901239999999.123456789012345679
-        3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446
-
-
-
+        12345678901234567890.12345678901234567890+5432109 = 12345678901239999999.123456789012345679
+        π = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446
+        2¹⁵⁶ = 91343852333181432387730302044767688728495783936
