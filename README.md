@@ -16,15 +16,11 @@ on the native architecture.  Scientific functions currently require the Double d
 
 Here's an simple example that creates a large floating point decimal number and prints it out:
 
-        ```
         let number: HDecimal = "12345678901234567890.12345678901234567890"
         let number2 = HDecimal(5432109)
         print(number+number2)
-        ```
         
 Resulting in:
 
-        ```
         12345678901239999999.123456789012345679
-        ```
 
