@@ -28,6 +28,14 @@ final class DecimalsTests: XCTestCase {
         XCTAssertEqual(Decimal64.exp(1).description,  "2.718281828459045")
         XCTAssertEqual(Decimal128.exp(1).description, "2.718281828459045235360287471352662")
         
+        HDecimal.digits = HDecimal.maximumDigits
+        let two = HDecimal(2)
+        let half = HDecimal(1)/two
+        XCTAssertEqual(HDecimal.pow(two, half).description,  "1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248361")
+        XCTAssertEqual(Decimal32.pow(2, 1.0/2).description,  "1.414214")
+        XCTAssertEqual(Decimal64.pow(2, 1.0/2).description,  "1.414213562373095")
+        XCTAssertEqual(Decimal128.pow(2, 1.0/2).description, "1.414213562373095048801688724209698")
+        
         XCTAssertEqual(HDecimal.pi.description,   "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446")
         XCTAssertEqual(Decimal32.pi.description,  "3.141593")
         XCTAssertEqual(Decimal64.pi.description,  "3.141592653589793")

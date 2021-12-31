@@ -625,7 +625,7 @@ extension Decimal128 : Real {
     public static func acos(_ x: Decimal128) -> Decimal128 { Decimal128(Double.acos(x.doubleValue)) }
     public static func asin(_ x: Decimal128) -> Decimal128 { Decimal128(Double.asin(x.doubleValue)) }
     public static func atan(_ x: Decimal128) -> Decimal128 { Decimal128(Double.atan(x.doubleValue)) }
-    public static func pow(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Decimal128(Double.pow(x.doubleValue, y.doubleValue)) }
+    public static func pow(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Utilities.pow(x, y) }
     public static func pow(_ x: Decimal128, _ n: Int) -> Decimal128 { Utilities.power(x, to: n) }
     public static func root(_ x: Decimal128, _ n: Int) -> Decimal128 { Utilities.root(value: x, n: n) }
     

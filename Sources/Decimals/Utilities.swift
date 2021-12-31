@@ -23,16 +23,13 @@ public protocol DecReals: Real {
 
 extension DecReals {
     
-    public var int : Int { Utilities.realToInt(self) }
-    public var uint : UInt { Utilities.realToInt(self) }
+    public var int: Int { Utilities.realToInt(self) }
+    public var uint: UInt { Utilities.realToInt(self) }
     public var doubleValue: Double { Utilities.doubleValue(of: self) }
     
     public var debugDescription: String {
         var str = ""
-        for b in self.bytes {
-            // transformed to big-endian
-            str += String(format: "%02X", b)
-        }
+        bytes.forEach { str += String(format: "%02X", $0) }
         return str
     }
     
@@ -154,7 +151,7 @@ struct Utilities {
         var n = abs(exp)
         while true {
             if !n.isMultiple(of: 2) { y *= z }
-            n <<= 1
+            n >>= 1
             if n == 0 { break }
             z *= z
         }
@@ -246,8 +243,7 @@ struct Utilities {
         return 1/value
     }
     
-    // Returns the value e^x where x is the value of the receiver.
-    //
+    /// Returns the value e^x where x is the input _value_.
     public static func exp<T:Real>(_ value: T) -> T {
         var result = abs(value)
         if !value.isValid { return value }
@@ -300,6 +296,125 @@ struct Utilities {
         }
         
         return value.isNegative ? Utilities.inverse(result) : result
+    }
+    
+    //
+    // Returns the natural logarithm of the receiver.
+    //
+    public static func log<T:DecReals>(_ value:T) -> T {
+        if !value.isValid { return value }
+        
+        var prevIteration = T.zero
+        
+        var i = T(2)
+        let one = T(1)
+        let eighth = one/8
+        var result = value
+        var inverse = false
+        var outputFactor : UInt64 = 1
+        
+        // ln(x) for x <= 0 is inValid
+        if result <= prevIteration {
+            return T.nan
+        }
+        
+        // ln(x) for x > 1 == -ln(1/x)
+        if value > one {
+            result = value.reciprocal!
+            inverse = true
+        }
+        
+        // Shift the number into a range between 1/8th and 1 (helps convergeance to a solution)
+        while result < eighth {
+            result = sqrt(result)
+            outputFactor *= 2
+        }
+        
+        // The base of our power is (x-1)
+        // This value is also the first term
+        result -= one
+        let original = result
+        var powerCopy = result
+        var nextTerm = result
+        
+        // iterate the Taylor Series until we obtain a stable solution
+        while result != prevIteration {
+            // Get a copy of the current value so that we can see if it changes
+            prevIteration = result
+            
+            // Determine the next term of the series
+            powerCopy *= original
+            nextTerm = powerCopy
+            nextTerm /= i
+            
+            // Subtract the next term if it is valid
+            if nextTerm.isValid {
+                result -= nextTerm
+            }
+            
+            i += one
+            
+            // Determine the next term of the series
+            powerCopy *= original
+            nextTerm = powerCopy
+            nextTerm /= i
+            
+            // Add the next term if it is valid
+            if nextTerm.isValid {
+                result += nextTerm
+            }
+            
+            i += one
+        }
+        
+        if inverse {
+            result = -result
+        }
+        
+        // Descale the result
+        let factorNum = T(outputFactor)
+        return result * factorNum
+    }
+    
+    //
+    // Raises the _value_ to the exponent _num_.
+    //
+    public static func pow<T:DecReals>(_ value: T, _ num: T) -> T {
+        var numCopy = num
+        var result = value
+        
+        if !value.isValid { return value }
+        if !num.isValid { return num }
+        
+        if value.isZero {
+            // Zero raised to anything except zero is zero (provided exponent is valid)
+            if num.isZero { return T(1) }
+            return value
+        }
+        
+        let exp:Int = Utilities.realToInt(num)
+        if T(exp)-num == 0 {
+            return power(value, to: exp)
+        }
+        
+        if value.isNegative {
+            result = value.magnitude
+        }
+        
+        result = T.exp(log(result) * num)
+        if value.isNegative {
+            if numCopy.isNegative {
+                numCopy = -numCopy
+            }
+            numCopy = numCopy.remainder(dividingBy: T(2))  // %= T(2)
+            if numCopy == T(1) {
+                result = -result
+            } else if !numCopy.isZero {
+                result = T.nan
+            }
+            
+        }
+        return result
     }
 
 }

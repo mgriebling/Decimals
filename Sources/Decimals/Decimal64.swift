@@ -598,7 +598,8 @@ extension Decimal64 : Real {
     
     // Ok, I cheated but the Double accuracy is almost enough for these functions.
     // However, feel free to fill these in with decimal-based calculations and please share.
-    // On the plus side, the Double calculations are an order of magnitude faster than the Decimal64.
+    // On the plus side, the Double calculations are an order of magnitude faster than the Decimal64
+    // because hardware operations are always faster than software.
     // Note: Decimal alternatives exist for many of these functions.
     public static func atan2(y: Decimal64, x: Decimal64) -> Decimal64     { Decimal64(Double.atan2(y:y.doubleValue, x:x.doubleValue)) }
     public static func erf(_ x: Decimal64) -> Decimal64                   { Decimal64(Double.erf(x.doubleValue)) }
