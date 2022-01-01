@@ -35,7 +35,7 @@ public struct HDecimal {
     public static var angularMeasure = UnitAngle.radians
     
     /// Internal number representation
-    fileprivate var decimal = decNumber()
+    fileprivate(set) var decimal = decNumber()
     
     private func initContext(digits: Int) {
         HDecimal.context.digits = digits
@@ -193,6 +193,8 @@ public struct HDecimal {
         let numStr = decimal.description
         self.init(numStr, digits: HDecimal.nominalDigits)!  // Apple Decimals are 38 digits fixed
     }
+    
+    public init?(_ s: String, radix: Int) { self.init(s, digits: 0, radix: radix) }
     
     public init?(_ s: String, digits: Int = 0, radix: Int = 10) {
         let digits = digits == 0 ? HDecimal.nominalDigits : digits
@@ -503,7 +505,7 @@ public struct HDecimal {
         var result = decNumber()
         decNumberLn(&result, &a, &HDecimal.context.base)
         decNumberCopy(&a, &result)
-        decNumberMultiply(&result, &a, &ln2, &HDecimal.context.base)
+        decNumberDivide(&result, &a, &ln2, &HDecimal.context.base)
         return HDecimal(result)
     }
     

@@ -596,11 +596,20 @@ extension Decimal64 : FloatingPoint {
 
 extension Decimal64 : Real {
     
-    // Ok, I cheated but the Double accuracy is almost enough for these functions.
+    public init(_ value:HDecimal) { self.init(value.decimal) }
+    
+    // makes the calculations a little neater
+    private init(_ value:decNumber) {
+        var dv = value
+        var d64 = decimal64()
+        decimal64FromNumber(&d64, &dv, &Decimal64.context.base)
+        self.decimal = d64
+    }
+    
+    // Ok, I cheated but the Double accuracy is usually enough for these functions.
     // However, feel free to fill these in with decimal-based calculations and please share.
     // On the plus side, the Double calculations are an order of magnitude faster than the Decimal64
     // because hardware operations are always faster than software.
-    // Note: Decimal alternatives exist for many of these functions.
     public static func atan2(y: Decimal64, x: Decimal64) -> Decimal64     { Decimal64(Double.atan2(y:y.doubleValue, x:x.doubleValue)) }
     public static func erf(_ x: Decimal64) -> Decimal64                   { Decimal64(Double.erf(x.doubleValue)) }
     public static func erfc(_ x: Decimal64) -> Decimal64                  { Decimal64(Double.erfc(x.doubleValue)) }

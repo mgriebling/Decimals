@@ -13,10 +13,14 @@ final class DecimalsTests: XCTestCase {
         XCTAssertEqual(HDecimal.leastNormalMagnitude.description,    "9.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999E-999999999")
   
         /// Test basic functions
-        XCTAssertEqual(HDecimal(2).squareRoot().description,   "1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248361")
-        XCTAssertEqual(Decimal32(2).squareRoot().description,  "1.414214")
-        XCTAssertEqual(Decimal64(2).squareRoot().description,  "1.414213562373095")
-        XCTAssertEqual(Decimal128(2).squareRoot().description, "1.414213562373095048801688724209698")
+        let sqrt2     = "1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248361"
+        let sqrt2_32  = "1.414214"
+        let sqrt2_64  = "1.414213562373095"
+        let sqrt2_128 = "1.414213562373095048801688724209698"
+        XCTAssertEqual(HDecimal.two.squareRoot().description,   sqrt2)
+        XCTAssertEqual(Decimal32.two.squareRoot().description,  sqrt2_32)
+        XCTAssertEqual(Decimal64.two.squareRoot().description,  sqrt2_64)
+        XCTAssertEqual(Decimal128.two.squareRoot().description, sqrt2_128)
         
         XCTAssertEqual(HDecimal.factorial(69).description,   "171122452428141311372468338881272839092270544893520369393648040923257279754140647424000000000000000")
         XCTAssertEqual(Decimal32.factorial(69).description,  "Infinity")  // Exceeds maximum exponent
@@ -27,14 +31,33 @@ final class DecimalsTests: XCTestCase {
         XCTAssertEqual(Decimal32.exp(1).description,  "2.718282")
         XCTAssertEqual(Decimal64.exp(1).description,  "2.718281828459045")
         XCTAssertEqual(Decimal128.exp(1).description, "2.718281828459045235360287471352662")
-        
+            
         HDecimal.digits = HDecimal.maximumDigits
-        let two = HDecimal(2)
-        let half = HDecimal(1)/two
-        XCTAssertEqual(HDecimal.pow(two, half).description,  "1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727350138462309122970249248361")
-        XCTAssertEqual(Decimal32.pow(2, 1.0/2).description,  "1.414214")
-        XCTAssertEqual(Decimal64.pow(2, 1.0/2).description,  "1.414213562373095")
-        XCTAssertEqual(Decimal128.pow(2, 1.0/2).description, "1.414213562373095048801688724209698")
+        let half = HDecimal.one/2
+        XCTAssertEqual(HDecimal.pow(2, half).description,    sqrt2)
+        XCTAssertEqual(Decimal32.pow(2, 1.0/2).description,  sqrt2_32)
+        XCTAssertEqual(Decimal64.pow(2, 1.0/2).description,  sqrt2_64)
+        XCTAssertEqual(Decimal128.pow(2, 1.0/2).description, sqrt2_128)
+        
+        XCTAssertEqual(HDecimal.exp2(half).description,    sqrt2)
+        XCTAssertEqual(Decimal32.exp2(1.0/2).description,  sqrt2_32)
+        XCTAssertEqual(Decimal64.exp2(1.0/2).description,  sqrt2_64)
+        XCTAssertEqual(Decimal128.exp2(1.0/2).description, sqrt2_128)
+        
+        XCTAssertEqual(HDecimal.log2(10).description,   "3.3219280948873623478703194294893901758648313930245806120547563958159347766086252158501397433593701550996573717102502518268240970")
+        XCTAssertEqual(Decimal32.log2(10).description,  "3.321928")
+        XCTAssertEqual(Decimal64.log2(10).description,  "3.321928094887362")
+        XCTAssertEqual(Decimal128.log2(10).description, "3.321928094887362347870319429489390")
+        
+        XCTAssertEqual(HDecimal.log10(2).description,   "0.30102999566398119521373889472449302676818988146210854131042746112710818927442450948692725211818617204068447719143099537909476788")
+        XCTAssertEqual(Decimal32.log10(2).description,  "0.3010300")
+        XCTAssertEqual(Decimal64.log10(2).description,  "0.3010299956639812")
+        XCTAssertEqual(Decimal128.log10(2).description, "0.3010299956639811952137388947244930")
+
+        XCTAssertEqual(HDecimal.log(10).description,   "2.3025850929940456840179914546843642076011014886287729760333279009675726096773524802359972050895982983419677840422862486334095255")
+        XCTAssertEqual(Decimal32.log(10).description,  "2.302585")
+        XCTAssertEqual(Decimal64.log(10).description,  "2.302585092994046")
+        XCTAssertEqual(Decimal128.log(10).description, "2.302585092994045684017991454684364")
         
         XCTAssertEqual(HDecimal.pi.description,   "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446")
         XCTAssertEqual(Decimal32.pi.description,  "3.141593")

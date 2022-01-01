@@ -598,18 +598,45 @@ extension Decimal128 : FloatingPoint {
 
 extension Decimal128 : Real {
     
-    // Ok, I cheated and need to fix this since the Double accuracy is not enough for these functions.
-    // Feel free to fill these in with decimal-based calculations and please share.
+    public init(_ value:HDecimal) { self.init(value.decimal) }
+    
+    // makes the calculations a little neater
+    private init(_ value:decNumber) {
+        var dv = value
+        var d128 = decimal128()
+        decimal128FromNumber(&d128, &dv, &Decimal128.context.base)
+        self.decimal = d128
+    }
+    
+    private var number:decNumber {
+        var xn = decNumber()
+        var xd = self.decimal
+        decimal128ToNumber(&xd, &xn)
+        return xn
+    }
+    
+    // Ok, I cheated and used the decNumber math functions.
+    // They are calculated only to correct number of digits for Decimal128 numbers.
     public static func atan2(y: Decimal128, x: Decimal128) -> Decimal128 { Decimal128(Double.atan2(y:y.doubleValue, x:x.doubleValue)) }
     public static func erf(_ x: Decimal128) -> Decimal128 { Decimal128(Double.erf(x.doubleValue)) }
     public static func erfc(_ x: Decimal128) -> Decimal128 { Decimal128(Double.erfc(x.doubleValue)) }
-    public static func exp2(_ x: Decimal128) -> Decimal128 { Decimal128(Double.exp2(x.doubleValue)) }
+    public static func exp2(_ x: Decimal128) -> Decimal128 { pow(2, x) }
     public static func hypot(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Decimal128(Double.hypot(x.doubleValue, y.doubleValue)) }
     public static func gamma(_ x: Decimal128) -> Decimal128 { Decimal128(Double.gamma(x.doubleValue)) }
-    public static func log2(_ x: Decimal128) -> Decimal128 { Decimal128(Double.log2(x.doubleValue)) }
-    public static func log10(_ x: Decimal128) -> Decimal128 { Decimal128(Double.log10(x.doubleValue)) }
+    public static func log2(_ x: Decimal128) -> Decimal128 { log(x)/Decimal128(Utilities.ln2String)! }
+    public static func log10(_ x: Decimal128) -> Decimal128 {
+        var xn = x.number
+        var res = decNumber()
+        decNumberLog10(&res, &xn, &Decimal128.context.base)
+        return Decimal128(res)
+    }
     public static func logGamma(_ x: Decimal128) -> Decimal128 { Decimal128(Double.logGamma(x.doubleValue)) }
-    public static func exp(_ x: Decimal128) -> Decimal128 { Utilities.exp(x) }
+    public static func exp(_ x: Decimal128) -> Decimal128 {
+        var xn = x.number
+        var res = decNumber()
+        decNumberExp(&res, &xn, &Decimal128.context.base)
+        return Decimal128(res)
+    }
     public static func expMinusOne(_ x: Decimal128) -> Decimal128 { Decimal128(Double.expMinusOne(x.doubleValue)) }
     public static func cosh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.cosh(x.doubleValue)) }
     public static func sinh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.sinh(x.doubleValue)) }
@@ -617,7 +644,12 @@ extension Decimal128 : Real {
     public static func cos(_ x: Decimal128) -> Decimal128 { Decimal128(Double.cos(x.doubleValue)) }
     public static func sin(_ x: Decimal128) -> Decimal128 { Decimal128(Double.sin(x.doubleValue)) }
     public static func tan(_ x: Decimal128) -> Decimal128 { Decimal128(Double.tan(x.doubleValue)) }
-    public static func log(_ x: Decimal128) -> Decimal128 { Decimal128(Double.log(x.doubleValue)) }
+    public static func log(_ x: Decimal128) -> Decimal128 {
+        var xn = x.number
+        var res = decNumber()
+        decNumberLn(&res, &xn, &Decimal128.context.base)
+        return Decimal128(res)
+    }
     public static func log(onePlus x: Decimal128) -> Decimal128 { Decimal128(Double.log(onePlus: x.doubleValue)) }
     public static func acosh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.acosh(x.doubleValue)) }
     public static func asinh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.asinh(x.doubleValue)) }
@@ -625,10 +657,15 @@ extension Decimal128 : Real {
     public static func acos(_ x: Decimal128) -> Decimal128 { Decimal128(Double.acos(x.doubleValue)) }
     public static func asin(_ x: Decimal128) -> Decimal128 { Decimal128(Double.asin(x.doubleValue)) }
     public static func atan(_ x: Decimal128) -> Decimal128 { Decimal128(Double.atan(x.doubleValue)) }
-    public static func pow(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Utilities.pow(x, y) }
+    public static func pow(_ x: Decimal128, _ y: Decimal128) -> Decimal128 {
+        var xn = x.number
+        var yn = y.number
+        var res = decNumber()
+        decNumberPower(&res, &xn, &yn, &Decimal128.context.base)
+        return Decimal128(res)
+    }
     public static func pow(_ x: Decimal128, _ n: Int) -> Decimal128 { Utilities.power(x, to: n) }
     public static func root(_ x: Decimal128, _ n: Int) -> Decimal128 { Utilities.root(value: x, n: n) }
-    
     public static func factorial(_ x: Decimal128) -> Decimal128 { Utilities.factorial(x) }
 }
 

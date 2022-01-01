@@ -19,6 +19,9 @@ public protocol DecReals: Real {
     var bytes: [UInt8] { get }
     
     init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int)
+    init(_ value: HDecimal)
+    init?(_ s: String, radix: Int)
+    
 }
 
 extension DecReals {
@@ -90,28 +93,17 @@ struct Utilities {
     private static func truncateLeadingZeros(_ n: [UInt8]) -> [UInt8] { Array(n.drop{ $0 == 0 }) }
     
     public static func doubleToReal<S:DecReals>(_ n: Double) -> S {
-        let digits = min(S.maximumDigits, 17)  // no more than Double precision
-
         // extract the numbers digits
-        var s = n.significand.magnitude
-        var bcd = [UInt8](repeating: 0, count: digits)
-        for i in 0..<digits {
-            bcd[i] = UInt8(s)
-            s = (s - Double(bcd[i])) * 10
-        }
-
-        // convert to decimal number
-        var x = S(sign: n.sign, bcd: bcd, exponent: -digits+1)
-        x *= Utilities.power(2, to: n.exponent)
-        
-        // round the decimal number for best accuracy
-        let remainder = Double(Int(s)) * Utilities.power(2, to: n.exponent)
-        bcd = [UInt8](repeating: 0, count: digits)  // clear number
-        if remainder >= 5 {
-            bcd[digits-1] = remainder > 10 ? 2 : 1  // add rounding
-        }
-        let round = S(sign: n.sign, bcd: bcd, exponent: -digits+1)
-        return x+round
+        let mantBits  = 52 // + 1 hidden
+        let hiddenBit : UInt64 = 1 << mantBits
+        let bitMask   = hiddenBit-1
+        let bits = (n.bitPattern & bitMask) + hiddenBit
+        let exponent = n.exponent-mantBits
+        let nbits = HDecimal(bits)
+        let npower = Utilities.power(HDecimal(2), to: abs(exponent))
+        print(nbits, npower, nbits/npower)
+        let result = exponent < 0 ? nbits / npower : nbits * npower
+        return S(result)
     }
     
     public static func convert<T:Real> (num: T, fromBase from: Int, toBase base: Int) -> T {
@@ -299,84 +291,6 @@ struct Utilities {
     }
     
     //
-    // Returns the natural logarithm of the receiver.
-    //
-    public static func log<T:DecReals>(_ value:T) -> T {
-        if !value.isValid { return value }
-        
-        var prevIteration = T.zero
-        
-        var i = T(2)
-        let one = T(1)
-        let eighth = one/8
-        var result = value
-        var inverse = false
-        var outputFactor : UInt64 = 1
-        
-        // ln(x) for x <= 0 is inValid
-        if result <= prevIteration {
-            return T.nan
-        }
-        
-        // ln(x) for x > 1 == -ln(1/x)
-        if value > one {
-            result = value.reciprocal!
-            inverse = true
-        }
-        
-        // Shift the number into a range between 1/8th and 1 (helps convergeance to a solution)
-        while result < eighth {
-            result = sqrt(result)
-            outputFactor *= 2
-        }
-        
-        // The base of our power is (x-1)
-        // This value is also the first term
-        result -= one
-        let original = result
-        var powerCopy = result
-        var nextTerm = result
-        
-        // iterate the Taylor Series until we obtain a stable solution
-        while result != prevIteration {
-            // Get a copy of the current value so that we can see if it changes
-            prevIteration = result
-            
-            // Determine the next term of the series
-            powerCopy *= original
-            nextTerm = powerCopy
-            nextTerm /= i
-            
-            // Subtract the next term if it is valid
-            if nextTerm.isValid {
-                result -= nextTerm
-            }
-            
-            i += one
-            
-            // Determine the next term of the series
-            powerCopy *= original
-            nextTerm = powerCopy
-            nextTerm /= i
-            
-            // Add the next term if it is valid
-            if nextTerm.isValid {
-                result += nextTerm
-            }
-            
-            i += one
-        }
-        
-        if inverse {
-            result = -result
-        }
-        
-        // Descale the result
-        let factorNum = T(outputFactor)
-        return result * factorNum
-    }
-    
-    //
     // Raises the _value_ to the exponent _num_.
     //
     public static func pow<T:DecReals>(_ value: T, _ num: T) -> T {
@@ -401,7 +315,7 @@ struct Utilities {
             result = value.magnitude
         }
         
-        result = T.exp(log(result) * num)
+        result = T.exp(T.log(result) * num)
         if value.isNegative {
             if numCopy.isNegative {
                 numCopy = -numCopy

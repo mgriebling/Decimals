@@ -76,7 +76,6 @@ public struct Decimal32 {
     }
     
     public init(_ d: Double) {
-        // we cheat by first converting to a string since Double conversions aren't accurate anyway
         let n: Decimal32 = Utilities.doubleToReal(d)
         self.decimal = n.decimal
     }
@@ -593,6 +592,16 @@ extension Decimal32 : FloatingPoint {
 }
 
 extension Decimal32 : Real {
+    
+    public init(_ value:HDecimal) { self.init(value.decimal) }
+    
+    // makes the calculations a little neater
+    private init(_ value:decNumber) {
+        var dv = value
+        var d32 = decimal32()
+        decimal32FromNumber(&d32, &dv, &Decimal32.context.base)
+        self.decimal = d32
+    }
     
     // Ok, I cheated but the Double accuracy should be more than enough for these functions.
     // Since, they are hardware accelerated, the Double calculations are much faster than software-based Decimal32.
