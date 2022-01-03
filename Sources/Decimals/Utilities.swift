@@ -94,14 +94,17 @@ struct Utilities {
     
     public static func doubleToReal<S:DecReals>(_ n: Double) -> S {
         // extract the numbers digits
+        if n.isZero { return S.zero }  // special case due to large exponent
+        
         let mantBits  = 52 // + 1 hidden
         let hiddenBit : UInt64 = 1 << mantBits
         let bitMask   = hiddenBit-1
         let bits = (n.bitPattern & bitMask) + hiddenBit
-        let exponent = n.exponent-mantBits
+        let exponent = Int(n.exponent)-mantBits
+        
+        // need a bit more resolution to get optimal accuracy -- HDecimal is all we have
         let nbits = HDecimal(bits)
         let npower = Utilities.power(HDecimal(2), to: abs(exponent))
-        print(nbits, npower, nbits/npower)
         let result = exponent < 0 ? nbits / npower : nbits * npower
         return S(result)
     }

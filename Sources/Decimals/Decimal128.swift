@@ -638,12 +638,12 @@ extension Decimal128 : Real {
         return Decimal128(res)
     }
     public static func expMinusOne(_ x: Decimal128) -> Decimal128 { Decimal128(Double.expMinusOne(x.doubleValue)) }
-    public static func cosh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.cosh(x.doubleValue)) }
-    public static func sinh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.sinh(x.doubleValue)) }
-    public static func tanh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.tanh(x.doubleValue)) }
-    public static func cos(_ x: Decimal128) -> Decimal128 { Decimal128(Double.cos(x.doubleValue)) }
-    public static func sin(_ x: Decimal128) -> Decimal128 { Decimal128(Double.sin(x.doubleValue)) }
-    public static func tan(_ x: Decimal128) -> Decimal128 { Decimal128(Double.tan(x.doubleValue)) }
+    public static func cosh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.cosh(HDecimal(x.number))) }
+    public static func sinh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.sinh(HDecimal(x.number))) }
+    public static func tanh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.tanh(HDecimal(x.number))) }
+    public static func cos(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.cos(HDecimal(x.number))) }
+    public static func sin(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.sin(HDecimal(x.number))) }
+    public static func tan(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.tan(HDecimal(x.number))) }
     public static func log(_ x: Decimal128) -> Decimal128 {
         var xn = x.number
         var res = decNumber()
@@ -651,12 +651,12 @@ extension Decimal128 : Real {
         return Decimal128(res)
     }
     public static func log(onePlus x: Decimal128) -> Decimal128 { Decimal128(Double.log(onePlus: x.doubleValue)) }
-    public static func acosh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.acosh(x.doubleValue)) }
-    public static func asinh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.asinh(x.doubleValue)) }
-    public static func atanh(_ x: Decimal128) -> Decimal128 { Decimal128(Double.atanh(x.doubleValue)) }
-    public static func acos(_ x: Decimal128) -> Decimal128 { Decimal128(Double.acos(x.doubleValue)) }
-    public static func asin(_ x: Decimal128) -> Decimal128 { Decimal128(Double.asin(x.doubleValue)) }
-    public static func atan(_ x: Decimal128) -> Decimal128 { Decimal128(Double.atan(x.doubleValue)) }
+    public static func acosh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.acosh(HDecimal(x.number))) }
+    public static func asinh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.asinh(HDecimal(x.number))) }
+    public static func atanh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.atanh(HDecimal(x.number))) }
+    public static func acos(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.acos(HDecimal(x.number))) }
+    public static func asin(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.asin(HDecimal(x.number))) }
+    public static func atan(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.atan(HDecimal(x.number))) }
     public static func pow(_ x: Decimal128, _ y: Decimal128) -> Decimal128 {
         var xn = x.number
         var yn = y.number

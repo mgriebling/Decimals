@@ -39,10 +39,67 @@ final class DecimalsTests: XCTestCase {
         XCTAssertEqual(Decimal64.pow(2, 1.0/2).description,  sqrt2_64)
         XCTAssertEqual(Decimal128.pow(2, 1.0/2).description, sqrt2_128)
         
-        XCTAssertEqual(HDecimal.exp2(half).description,    sqrt2)
-        XCTAssertEqual(Decimal32.exp2(1.0/2).description,  sqrt2_32)
-        XCTAssertEqual(Decimal64.exp2(1.0/2).description,  sqrt2_64)
-        XCTAssertEqual(Decimal128.exp2(1.0/2).description, sqrt2_128)
+        XCTAssertEqual(HDecimal.sin(1).description,   "0.84147098480789650665250232163029899962256306079837106567275170999191040439123966894863974354305269585434903790792067429325911893")
+        XCTAssertEqual(Decimal32.sin(1).description,  "0.8414710")
+        XCTAssertEqual(Decimal64.sin(1).description,  "0.8414709848078965")
+        XCTAssertEqual(Decimal128.sin(1).description, "0.8414709848078965066525023216302990")
+        
+        XCTAssertEqual(HDecimal.cos(1).description,   "0.54030230586813971740093660744297660373231042061792222767009725538110039477447176451795185608718308934357173116003008909786063378")
+        XCTAssertEqual(Decimal32.cos(1).description,  "0.5403023")
+        XCTAssertEqual(Decimal64.cos(1).description,  "0.5403023058681398")
+        XCTAssertEqual(Decimal128.cos(1).description, "0.5403023058681397174009366074429766")
+        
+        XCTAssertEqual(HDecimal.tan(1).description,   "1.5574077246549022305069748074583601730872507723815200383839466056988613971517272895550999652022429838046338214117481666133235546")
+        XCTAssertEqual(Decimal32.tan(1).description,  "1.557408")
+        XCTAssertEqual(Decimal64.tan(1).description,  "1.557407724654902")
+        XCTAssertEqual(Decimal128.tan(1).description, "1.557407724654902230506974807458360")
+        
+        XCTAssertEqual(HDecimal.asin(1).description,   "1.5707963267948966192313216916397514420985846996875529104874722961539082031431044993140174126710585339910740432566411533235469223")
+        XCTAssertEqual(Decimal32.asin(1).description,  "1.570796")
+        XCTAssertEqual(Decimal64.asin(1).description,  "1.570796326794897")
+        XCTAssertEqual(Decimal128.asin(1).description, "1.570796326794896619231321691639751")
+        
+        XCTAssertEqual(HDecimal.acos(half).description,    "1.0471975511965977461542144610931676280657231331250352736583148641026054687620696662093449417807056893273826955044274355490312816")
+        XCTAssertEqual(Decimal32.acos(1.0/2).description,  "1.047198")
+        XCTAssertEqual(Decimal64.acos(1.0/2).description,  "1.047197551196598")
+        XCTAssertEqual(Decimal128.acos(1.0/2).description, "1.047197551196597746154214461093168")
+        
+        XCTAssertEqual(HDecimal.atan(1).description,   "0.78539816339744830961566084581987572104929234984377645524373614807695410157155224965700870633552926699553702162832057666177346115")
+        XCTAssertEqual(Decimal32.atan(1).description,  "0.7853982")
+        XCTAssertEqual(Decimal64.atan(1).description,  "0.7853981633974483")
+        XCTAssertEqual(Decimal128.atan(1).description, "0.7853981633974483096156608458198757")
+        
+        XCTAssertEqual(HDecimal.sinh(1).description,   "1.1752011936438014568823818505956008151557179813340958702295654130133075673043238956071174520896233918404195333275795323567852189")
+        XCTAssertEqual(Decimal32.sinh(1).description,  "1.175201")
+        XCTAssertEqual(Decimal64.sinh(1).description,  "1.175201193643801")
+        XCTAssertEqual(Decimal128.sinh(1).description, "1.175201193643801456882381850595601")
+        
+        XCTAssertEqual(HDecimal.cosh(1).description,   "1.5430806348152437784779056207570616826015291123658637047374022147107690630492236989642647264355430355870468586044235275650321947")
+        XCTAssertEqual(Decimal32.cosh(1).description,  "1.543081")
+        XCTAssertEqual(Decimal64.cosh(1).description,  "1.543080634815244")
+        XCTAssertEqual(Decimal128.cosh(1).description, "1.543080634815243778477905620757062")
+        
+
+        XCTAssertEqual(HDecimal.tanh(1).description,   "0.76159415595576488811945828260479359041276859725793655159681050012195324457663848345894752167367671442190275970155407753236830911")
+        XCTAssertEqual(Decimal32.tanh(1).description,  "0.7615942")
+        XCTAssertEqual(Decimal64.tanh(1).description,  "0.7615941559557649")
+        XCTAssertEqual(Decimal128.tanh(1).description, "0.7615941559557648881194582826047936")
+        
+        XCTAssertEqual(HDecimal.asinh(1).description,   "0.88137358701954302523260932497979230902816032826163541075329560865337718422202608783370689191025604285673981619210649218876207253")
+        XCTAssertEqual(Decimal32.asinh(1).description,  "0.8813736")
+        XCTAssertEqual(Decimal64.asinh(1).description,  "0.8813735870195430")
+        XCTAssertEqual(Decimal128.asinh(1).description, "0.8813735870195430252326093249797923")
+        
+       //  print(Double.atanh(0.5), HDecimal.atanh(half), Decimal32.atanh(0.5), Decimal64.atanh(0.5), Decimal128.atanh(0.5))
+        XCTAssertEqual(HDecimal.acosh(2).description,   "1.3169578969248167086250463473079684440269819714675164797684722569204601854164439760742190134501017835564654365656049793198098169")
+        XCTAssertEqual(Decimal32.acosh(2).description,  "1.316958")
+        XCTAssertEqual(Decimal64.acosh(2).description,  "1.316957896924817")
+        XCTAssertEqual(Decimal128.acosh(2).description, "1.316957896924816708625046347307968")
+        
+        XCTAssertEqual(HDecimal.atanh(half).description,  "0.5493061443340548456976226184612628523237452789113747258673471668187471466093044834368078774068660443939850145329789328711840021")
+        XCTAssertEqual(Decimal32.atanh(0.5).description,  "0.5493061")
+        XCTAssertEqual(Decimal64.atanh(0.5).description,  "0.5493061443340549")
+        XCTAssertEqual(Decimal128.atanh(0.5).description, "0.5493061443340548456976226184612629")
         
         XCTAssertEqual(HDecimal.log2(10).description,   "3.3219280948873623478703194294893901758648313930245806120547563958159347766086252158501397433593701550996573717102502518268240970")
         XCTAssertEqual(Decimal32.log2(10).description,  "3.321928")

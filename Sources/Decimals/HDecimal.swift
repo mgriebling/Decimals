@@ -148,11 +148,11 @@ public struct HDecimal {
     
     // MARK: - Initialization Methods
     
-    public init(_ decimal : HDecimal) { self.decimal = decimal.decimal }
+    public init(_ decimal : HDecimal) { initContext(digits: HDecimal.context.digits); self.decimal = decimal.decimal }
     
     public init<Source>(_ value: Source = 0) where Source : BinaryInteger {
         /* small integers (32-bits) are directly convertible */
-        initContext(digits: HDecimal.digits)
+        initContext(digits: HDecimal.context.digits)
         if let rint = Int32(exactly: value) {
             // need this to initialize small Ints
             decNumberFromInt32(&decimal, rint)
@@ -163,12 +163,13 @@ public struct HDecimal {
     }
     
     public init(_ d: Double) {
-        initContext(digits:  HDecimal.digits)
+        initContext(digits:  HDecimal.context.digits)
         let n: HDecimal = Utilities.doubleToReal(d)
         self.decimal = n.decimal
     }
     
     public init(sign: FloatingPointSign, exponent: Int, significand: HDecimal) {
+        initContext(digits:  HDecimal.context.digits)
         var a = significand
         var exp = HDecimal(exponent)
         var result = decNumber()
@@ -181,6 +182,7 @@ public struct HDecimal {
     }
     
     public init(signOf: HDecimal, magnitudeOf: HDecimal) {
+        initContext(digits:  HDecimal.context.digits)
         var result = decNumber()
         var a = magnitudeOf.decimal
         var sign = signOf.decimal
@@ -191,7 +193,7 @@ public struct HDecimal {
     public init(_ decimal: Foundation.Decimal) {
         // we cheat since this should be an uncommon thing to do
         let numStr = decimal.description
-        self.init(numStr, digits: HDecimal.nominalDigits)!  // Apple Decimals are 38 digits fixed
+        self.init(numStr, digits: HDecimal.context.digits)!  // Apple Decimals are 38 digits fixed
     }
     
     public init?(_ s: String, radix: Int) { self.init(s, digits: 0, radix: radix) }
@@ -211,7 +213,7 @@ public struct HDecimal {
     
     public init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int) {
         var bcd = bcd
-        initContext(digits: bcd.count)
+        initContext(digits: HDecimal.context.digits)
         decNumberSetBCD(&decimal, &bcd, UInt32(bcd.count))
         var exp = decNumber()
         decNumberFromInt32(&exp, Int32(exponent))
@@ -675,151 +677,42 @@ extension HDecimal {
         }
     }
     
-    private static func atan(res: inout HDecimal, x: HDecimal) {
-        var a, b, a2, t, j, z, last : HDecimal
-        var doubles = 0
-        let neg = x.isNegative
-        
-        // arrange for a >= 0
-        if neg {
-            a = -x  // dn_minus(&a, x);
-        } else {
-            a = x   // decNumberCopy(&a, x);
-        }
-        
-        // reduce range to 0 <= a < 1, using atan(x) = pi/2 - atan(1/x)
-        let invert = a > HDecimal.one
-        if invert { a = HDecimal.one / a } // dn_divide(&a, &const_1, &a);
-        
-        // Range reduce to small enough limit to use taylor series
-        // using:
-        //  tan(x/2) = tan(x)/(1+sqrt(1+tan(x)^2))
-        for _ in 0..<1000 {
-            if a <= HDecimal("0.1") { break }
-            doubles += 1
-            // a = a/(1+sqrt(1+a^2)) -- at most 3 iterations.
-            b = a.sqr()      // dn_multiply(&b, &a, &a);
-            b += HDecimal.one // dn_inc(&b);
-            b = b.sqrt()     // dn_sqrt(&b, &b);
-            b += HDecimal.one // dn_inc(&b);
-            a /= b           // dn_divide(&a, &a, &b);
-        }
-        
-        // Now Taylor series
-        // tan(x) = x(1-x^2/3+x^4/5-x^6/7...)
-        // We calculate pairs of terms and stop when the estimate doesn't change
-        res = 3         // , &const_3);
-        j = 5           // decNumberCopy(&j, &const_5);
-        a2 = a.sqr()    // dn_multiply(&a2, &a, &a);	// a^2
-        t = a2          // decNumberCopy(&t, &a2);
-        res = t / res   // dn_divide(res, &t, res);	// s = 1-t/3 -- first two terms
-        res = HDecimal.one - res   // dn_1m(res, res);
-        
-        repeat {	// Loop until there is no digits changed
-            last = res
-            
-            t *= a2     // dn_multiply(&t, &t, &a2);
-            z = t / j   // dn_divide(&z, &t, &j);
-            res += z    // dn_add(res, res, &z);
-            j += HDecimal.two // dn_p2(&j, &j);
-            
-            t *= a2     // dn_multiply(&t, &t, &a2);
-            z = t / j   // dn_divide(&z, &t, &j);
-            res += z    // dn_subtract(res, res, &z);
-            j += HDecimal.two  // dn_p2(&j, &j);
-        } while res != last
-        res *= a        // dn_multiply(res, res, &a);
-        
-        while doubles > 0 {
-            res += res      // dn_add(res, res, res);
-            doubles -= 1
-        }
-        
-        if invert {
-            res = HDecimal.pi_2 - res // dn_subtract(res, &const_PIon2, res);
-        }
-        
-        if neg { res = -res } // dn_minus(res, res);
-    }
+    private static func atan(res: inout HDecimal, x: HDecimal) { res = atan2(y: x, x: one) }
     
     public static func atan2(y: HDecimal, x: HDecimal) -> HDecimal {
-        let xneg = x.isNegative
-        let yneg = y.isNegative
-        var at = HDecimal.zero
+        if x.isZero {
+            if y.isZero { return HDecimal.nan }
+            return y.isNegative ? -pi_2 : pi_2
+        } else if y.isZero {
+            return x.isNegative ? pi : zero
+        }
+        if x == y  { return y.isNegative ? -3*pi/4 : pi_2/2 }
+        if x == -y { return y.isNegative ? -pi_2/2 : 3*pi/4 }
         
-        if x.isNaN || y.isNaN { return HDecimal.NaN }
-        if y.isZero {
-            if yneg {
-                if x.isZero {
-                    if xneg {
-                        at = -HDecimal.pi
-                    } else {
-                        at = y
-                    }
-                } else if xneg {
-                    at = -HDecimal.pi //decNumberPI(at);
-                } else {
-                    at = y  // decNumberCopy(at, y);
-                }
-            } else {
-                if x.isZero {
-                    if xneg {
-                        at = HDecimal.pi // decNumberPI(at);
-                    } else {
-                        at = HDecimal.zero // decNumberZero(at);
-                    }
-                } else if xneg {
-                    at = HDecimal.pi     // decNumberPI(at);
-                } else {
-                    at = HDecimal.zero   // decNumberZero(at);
-                }
-            }
-            return at
-        }
-        if x.isZero  {
-            at = HDecimal.pi_2 // decNumberPIon2(at);
-            if yneg { at = -at } //  dn_minus(at, at);
-            return at
-        }
-        if x.isInfinite {
-            if xneg {
-                if y.isInfinite {
-                    at = HDecimal.pi * 0.75  // decNumberPI(&t);
-                    // dn_multiply(at, &t, &const_0_75);
-                    if yneg { at = -at } // dn_minus(at, at);
-                } else {
-                    at = HDecimal.pi // decNumberPI(at);
-                    if yneg { at = -at } // dn_minus(at, at);
-                }
-            } else {
-                if y.isInfinite {
-                    at = HDecimal.pi/4    // decNumberPIon2(&t);
-                    if yneg { at = -at } // dn_minus(at, at);
-                } else {
-                    at = HDecimal.zero    // decNumberZero(at);
-                    if yneg { at = -at } // dn_minus(at, at);
-                }
-            }
-            return at
-        }
-        if y.isInfinite  {
-            at = HDecimal.pi_2    // decNumberPIon2(at);
-            if yneg { at = -at } //  dn_minus(at, at);
-            return at
-        }
+        let r = (x.sqr() + y.sqr()).sqrt()
+        let xx = x / r
+        let yy = y / r
         
-        var t = y / x       // dn_divide(&t, y, x);
-        var r = HDecimal.zero
-        HDecimal.atan(res: &r, x: t) // do_atan(&r, &t);
-        if xneg {
-            t = HDecimal.pi // decNumberPI(&t);
-            if yneg { t = -t } // dn_minus(&t, &t);
+        /* Compute Double precision approximation to atan. */
+        var z = HDecimal(Double.atan2(y: y.doubleValue, x: x.doubleValue))
+        var sin_z, cos_z: HDecimal!
+        sin_z = zero; cos_z = zero
+        var zp = zero
+        
+        if xx.abs > yy.abs {
+            /* Use Newton iteration 1.  z' = z + (y - sin(z)) / cos(z)  */
+            while z != zp {
+                zp = z
+                sincosTaylor(z, sout: &sin_z, cout: &cos_z); z += (yy - sin_z) / cos_z
+            }
         } else {
-            t = HDecimal.zero // decNumberZero(&t);
+            /* Use Newton iteration 2.  z' = z - (x - cos(z)) / sin(z)  */
+            while z != zp {
+                zp = z
+                sincosTaylor(z, sout: &sin_z, cout: &cos_z); z -= (xx - cos_z) / sin_z
+            }
         }
-        at = r + t  // dn_add(at, &r, &t);
-        if at.isZero && yneg { at = -at } //  dn_minus(at, at);
-        return at
+        return z
     }
     
     private static func asin(res: inout HDecimal, x: HDecimal) {
@@ -921,6 +814,7 @@ extension HDecimal {
             HDecimal.digits = HDecimal.SINCOS_DIGITS
             if HDecimal.convertToRadians(res: &x2, x: x, r0:0, r1:HDecimal.NaN, r2:0, r3:HDecimal.NaN) {
                 var s, c : HDecimal?
+                s = HDecimal.zero; c = HDecimal.zero
                 HDecimal.sincosTaylor(x2, sout: &s, cout: &c)
                 x2 = s! / c!  // dn_divide(&x2.n, &s.n, &c.n);
             }
@@ -975,12 +869,7 @@ public extension HDecimal {
     static func Expm1(_ x: HDecimal) -> HDecimal {
         if x.isSpecial { return x }
         let u = x.exp()
-        var v = u - HDecimal.one
-        if v.isZero { return x }
-        if v == -1 { return v }
-        let w = v * x           // dn_multiply(&w, &v, x);
-        v = u.ln()              // dn_ln(&v, &u);
-        return w / v
+        return (x+1)*u-1
     }
     
     /* Hyperbolic functions.
@@ -988,70 +877,85 @@ public extension HDecimal {
      * We do the sinh as (e^x - 1) (e^x + 1) / (2 e^x) for numerical stability
      * reasons if the value of x is smallish.
      */
-    private static func sinhcosh(x: HDecimal, sinhv: inout HDecimal?, coshv: inout HDecimal?) {
-        if sinhv != nil {
-            if x.abs < 0.5 {
-                var u = Expm1(x)
-                let t = u / HDecimal.two // dn_div2(&t, &u);
-                u += HDecimal.one    // dn_inc(&u);
-                let v = t / u       // dn_divide(&v, &t, &u);
-                u += HDecimal.one    // dn_inc(&u);
-                sinhv = u * v       // dn_multiply(sinhv, &u, &v);
-            } else {
-                let u = x.exp()     // dn_exp(&u, x);			// u = e^x
-                let v = HDecimal.one / u   // decNumberRecip(&v, &u);		// v = e^-x
-                let t = u - v       // dn_subtract(&t, &u, &v);	// r = e^x - e^-x
-                sinhv = t / HDecimal.two       // dn_div2(sinhv, &t);
-            }
-        }
-        if coshv != nil {
-            let u = x.exp()           // dn_exp(&u, x);			// u = e^x
-            let v = HDecimal.one / u   // decNumberRecip(&v, &u);		// v = e^-x
-            coshv = (u + v) / HDecimal.two       // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
-        }
-    }
+//    private static func sinhcosh(x: HDecimal, sinhv: inout HDecimal?, coshv: inout HDecimal?) {
+//        let digits = HDecimal.digits
+//        HDecimal.digits = SINCOS_DIGITS
+//        if sinhv != nil {
+//            if x.abs < 0.5 {
+//                var u = Expm1(x)
+//                let t = u / two // dn_div2(&t, &u);
+//                u += one    // dn_inc(&u);
+//                let v = t / u       // dn_divide(&v, &t, &u);
+//                u += one    // dn_inc(&u);
+//                sinhv = u * v       // dn_multiply(sinhv, &u, &v);
+//            } else {
+//                let u = x.exp()     // dn_exp(&u, x);			// u = e^x
+//                let v = one / u   // decNumberRecip(&v, &u);		// v = e^-x
+//                let t = u - v       // dn_subtract(&t, &u, &v);	// r = e^x - e^-x
+//                sinhv = t / two       // dn_div2(sinhv, &t);
+//            }
+//        }
+//        if coshv != nil {
+//            let u = x.exp()           // dn_exp(&u, x);			// u = e^x
+//            let v = one / u   // decNumberRecip(&v, &u);		// v = e^-x
+//            coshv = (u + v) / two       // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
+//        }
+//        HDecimal.digits = digits
+//    }
+    
+    static func inv(_ d: HDecimal) -> HDecimal { one / d }
     
     func sinh() -> HDecimal {
-        let x = self
-        if x.isSpecial {
-            if x.isNaN { return HDecimal.NaN }
-            return x
+        let a = self
+        if a.isZero { return a }
+        
+        if a.abs > 0.05 {
+            let ea = a.exp()
+            return (ea - HDecimal.inv(ea)) * 0.5
         }
-        var res : HDecimal? = HDecimal.zero
-        HDecimal.sinhcosh(x: x, sinhv: &res, coshv: &HDecimal.Nil)
-        return res!
+        
+        /* Since a is small, using the above formula gives
+        a lot of cancellation.   So use Taylor series. */
+        var s = a
+        var t = a
+        let r = t.sqr()
+        var m = 1
+        let thresh = a.ulp
+        
+        repeat {
+            m += 2
+            t *= r
+            t = t / HDecimal((m-1) * m)
+            s += t
+        } while t.abs > thresh
+        
+        return s
     }
     
-    fileprivate mutating func setINF() {
-        self.decimal.bits |= UInt8(DECINF)
-    }
-    
-    fileprivate mutating func setNINF() {
-        self.decimal.bits |= UInt8(DECNEG+DECINF)
-    }
+    fileprivate mutating func setINF()  { self.decimal.bits |= UInt8(DECINF) }
+    fileprivate mutating func setNINF() { self.decimal.bits |= UInt8(DECNEG+DECINF) }
     
     func cosh() -> HDecimal {
-        let x = self
-        var res : HDecimal? = HDecimal.zero
-        if x.isSpecial {
-            if x.isNaN { return HDecimal.NaN }
-            return HDecimal.infinity
-        }
-        HDecimal.sinhcosh(x: x, sinhv: &HDecimal.Nil, coshv: &res)
-        return res!
+        let a = self
+        if a.isZero { return HDecimal.one }
+        
+        let ea = a.exp()
+        return (ea + HDecimal.inv(ea)) * 0.5
     }
     
     func tanh() -> HDecimal {
-        let x = self
-        if x.isNaN { return HDecimal.NaN }
-        if x < 100 {
-            if x.isNegative { return -1 }
-            return HDecimal.one
+        let a = self
+        if a.isZero { return a }
+        
+        if Swift.abs(a.doubleValue) > 0.05 {
+            let ea = a.exp()
+            let inv_ea = HDecimal.inv(ea)
+            return (ea - inv_ea) / (ea + inv_ea)
+        } else {
+            let s = a.sinh()
+            let c = (1.0 + s.sqr()).sqrt()
+            return s / c
         }
-        var a = x.sqr()               // dn_add(&a, x, x);
-        let b = a.exp()-HDecimal.one   // decNumberExpm1(&b, &a);
-        a = b + HDecimal.two           // dn_p2(&a, &b);
-        return b / a
     }
     
     /* ln(1+x) */
@@ -1083,7 +987,7 @@ public extension HDecimal {
         let x = self
         var res = x.sqr()           // decNumberSquare(res, x);	// r = x^2
         var z = res - HDecimal.one   // dn_m1(&z, res);			// z = x^2 + 1
-        res = z.sqr()               // dn_sqrt(res, &z);		// r = sqrt(x^2+1)
+        res = z.sqrt()               // dn_sqrt(res, &z);		// r = sqrt(x^2+1)
         z = res + x                 // dn_add(&z, res, x);		// z = x + sqrt(x^2+1)
         return z.ln()
     }
@@ -1098,7 +1002,7 @@ public extension HDecimal {
             return HDecimal.infinity
         }
         // Not the obvious formula but more stable...
-        var z = x - HDecimal.one   // dn_1m(&z, x);
+        var z = HDecimal.one - x   // dn_1m(&z, x);
         y = x / z                 // dn_divide(&y, x, &z);
         z = HDecimal.two * y       // dn_mul2(&z, &y);
         y = z.Ln1p()              // decNumberLn1p(&y, &z);
@@ -1112,17 +1016,12 @@ public extension HDecimal {
     /* Calculate permutations:
      * C(x, y) = P(x, y) / y! = x! / ( (x-y)! y! )
      */
-    func comb (y: HDecimal) -> HDecimal {
-        return self.perm(y: y) / y.factorial()
-    }
+    func comb (y: HDecimal) -> HDecimal { self.perm(y: y) / y.factorial() }
     
     /* Calculate permutations:
      * P(x, y) = x! / (x-y)!
      */
-    func perm (y: HDecimal) -> HDecimal {
-        let xfact = self.factorial()
-        return xfact / (self - y).factorial()
-    }
+    func perm (y: HDecimal) -> HDecimal { self.factorial() / (self - y).factorial() }
     
     func gamma () -> HDecimal {
         let t = self
@@ -1275,7 +1174,7 @@ extension HDecimal : ExpressibleByIntegerLiteral {
 // Mark: - ExpressibleByFloatLiteral compliance
 // Note: These conversions are not guaranteed to be exact.
 extension HDecimal : ExpressibleByFloatLiteral {
-    public init(floatLiteral value: Double) { self.init(String(value))! }  // not exactly representable anyway so we cheat
+    public init(floatLiteral value: Double) { self.init(value) }
 }
 
 // Mark: - Hashable compliance
@@ -1337,11 +1236,11 @@ precedencegroup ExponentPrecedence {
 extension HDecimal : Real {
     
     public static func erf(_ x: HDecimal) -> HDecimal {
-        x
+        HDecimal(Double.erf(x.doubleValue)) // better than nothing
     }
     
     public static func erfc(_ x: HDecimal) -> HDecimal {
-        x
+        HDecimal(Double.erfc(x.doubleValue)) // better than nothing
     }
     
     public static func exp2(_ x: HDecimal) -> HDecimal { HDecimal.two.pow(x) }
@@ -1351,7 +1250,7 @@ extension HDecimal : Real {
     public static func log10(_ x: HDecimal) -> HDecimal { x.log10() }
     
     public static func logGamma(_ x: HDecimal) -> HDecimal {
-        x
+        HDecimal(Double.logGamma(x.doubleValue)) // better than nothing
     }
     
 }
