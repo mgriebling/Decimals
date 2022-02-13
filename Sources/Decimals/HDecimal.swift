@@ -214,7 +214,8 @@ public struct HDecimal {
     public init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int) {
         var bcd = bcd
         initContext(digits: HDecimal.context.digits)
-        decNumberSetBCD(&decimal, &bcd, UInt32(bcd.count))
+        decimal.digits = Int32(HDecimal.context.digits)
+        decNumberSetBCD(&decimal, &bcd, UInt32(decimal.digits))
         var exp = decNumber()
         decNumberFromInt32(&exp, Int32(exponent))
         var result = decNumber()
@@ -236,24 +237,17 @@ public struct HDecimal {
         return String(cString: &cs)
     }
     
-    private func getRadixDigitFor(_ n: Int) -> String {
-        if n < 10 {
-            return String(n)
-        } else {
-            let offset = n - 10
-            let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            let digit = letters[letters.index(letters.startIndex, offsetBy: offset)]
-            return String(digit)
-        }
-    }
+    static private let radixDigits = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    static private let miniDigits = Array("₀₁₂₃₄₅₆₇₈₉")
+    
+    private func getRadixDigitFor(_ n: Int) -> String { String(HDecimal.radixDigits[n]) }
     
     private func getMiniRadixDigits(_ radix: Int) -> String {
         var result = ""
         var radix = radix
-        let miniDigits = "₀₁₂₃₄₅₆₇₈₉"
         while radix > 0 {
             let offset = radix % 10; radix /= 10
-            let digit = miniDigits[miniDigits.index(miniDigits.startIndex, offsetBy: offset)]
+            let digit = HDecimal.miniDigits[offset]
             result = String(digit) + result
         }
         return result
@@ -267,7 +261,7 @@ public struct HDecimal {
         return y
     }
     
-    public func string(withRadix radix : Int, showBase : Bool = false) -> String {
+    public func string(withRadix radix: Int, showBase: Bool = false, showSign: Bool = false) -> String {
         var n = self.integer.abs
         
         // restrict to legal radix values 2 to 36
@@ -279,7 +273,7 @@ public struct HDecimal {
             str = getRadixDigitFor(digit.int) + str
         }
         if showBase { str += getMiniRadixDigits(radix) }
-        return str
+        return showSign && self.isNegative ? "-" + str : str
     }
     
     public static var versionString : String { String(cString: decNumberVersion()) }
@@ -511,14 +505,24 @@ public struct HDecimal {
         return HDecimal(result)
     }
     
-    /// Returns self * 10 ** b
-    public func scaleB (_ b: HDecimal) -> HDecimal {
+    
+    public func logB () -> HDecimal {
         var a = decimal
         var result = decNumber()
         decNumberLogB(&result, &a, &HDecimal.context.base)
         return HDecimal(result)
     }
     
+    /// Returns self * 10 ** b
+    public func scaleB (_ b: HDecimal) -> HDecimal {
+        var a = decimal
+        var b = b.decimal
+        var result = decNumber()
+        decNumberScaleB(&result, &a, &b, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    /// Returns square root of *self*.
     public func sqrt () -> HDecimal {
         var a = decimal
         var result = decNumber()
@@ -526,6 +530,7 @@ public struct HDecimal {
         return HDecimal(result)
     }
     
+    /// Returns cube root of *self*.
     public func cbrt () -> HDecimal { HDecimal.root(self, 3) }
     
     /// converts decimal numbers to logical
@@ -872,37 +877,6 @@ public extension HDecimal {
         return (x+1)*u-1
     }
     
-    /* Hyperbolic functions.
-     * We start with a utility routine that calculates sinh and cosh.
-     * We do the sinh as (e^x - 1) (e^x + 1) / (2 e^x) for numerical stability
-     * reasons if the value of x is smallish.
-     */
-//    private static func sinhcosh(x: HDecimal, sinhv: inout HDecimal?, coshv: inout HDecimal?) {
-//        let digits = HDecimal.digits
-//        HDecimal.digits = SINCOS_DIGITS
-//        if sinhv != nil {
-//            if x.abs < 0.5 {
-//                var u = Expm1(x)
-//                let t = u / two // dn_div2(&t, &u);
-//                u += one    // dn_inc(&u);
-//                let v = t / u       // dn_divide(&v, &t, &u);
-//                u += one    // dn_inc(&u);
-//                sinhv = u * v       // dn_multiply(sinhv, &u, &v);
-//            } else {
-//                let u = x.exp()     // dn_exp(&u, x);			// u = e^x
-//                let v = one / u   // decNumberRecip(&v, &u);		// v = e^-x
-//                let t = u - v       // dn_subtract(&t, &u, &v);	// r = e^x - e^-x
-//                sinhv = t / two       // dn_div2(sinhv, &t);
-//            }
-//        }
-//        if coshv != nil {
-//            let u = x.exp()           // dn_exp(&u, x);			// u = e^x
-//            let v = one / u   // decNumberRecip(&v, &u);		// v = e^-x
-//            coshv = (u + v) / two       // dn_average(coshv, &v, &u);	// r = (e^x + e^-x)/2
-//        }
-//        HDecimal.digits = digits
-//    }
-    
     static func inv(_ d: HDecimal) -> HDecimal { one / d }
     
     func sinh() -> HDecimal {
@@ -1013,6 +987,20 @@ public extension HDecimal {
 // Mark: - Combination/Permutation functions
 public extension HDecimal {
     
+    static func random (in range: Range<HDecimal> = 0..<1) -> HDecimal {
+        let digits = HDecimal.digits  // working digits
+        var working = [UInt8](); working.reserveCapacity(digits)
+        
+        // generate some randome digits
+        for _ in 1...digits {
+            working.append(UInt8.random(in: 0...9))
+        }
+        var x = HDecimal(sign: .plus, bcd: working, exponent: -digits+1)
+        while x > range.upperBound { x = x.scaleB(-1) }
+        if x < range.lowerBound { x += range.lowerBound }
+        return x
+    }
+    
     /* Calculate permutations:
      * C(x, y) = P(x, y) / y! = x! / ( (x-y)! y! )
      */
@@ -1024,6 +1012,7 @@ public extension HDecimal {
     func perm (y: HDecimal) -> HDecimal { self.factorial() / (self - y).factorial() }
     
     func gamma () -> HDecimal {
+        print("*** WARNING: \(#function) is not released yet and probably doesn't work!")
         let t = self
         let ndp = Double(HDecimal.digits)
         
@@ -1117,6 +1106,110 @@ public extension HDecimal {
         }
         
         return rootTwoPi * arga1 ** (arg - 0.5) * arga2.exp() * sum
+    }
+    
+    func erf() -> HDecimal {
+        print("*** WARNING: \(#function) is not released yet and probably doesn't work!")
+        let x = self
+        if x.isSpecial || x.isZero { return x }
+        
+        /* around x=0, we have erf(x) = 2x/sqrt(Pi) (1 - x^2/3 + ...),
+           with 1 - x^2/3 <= sqrt(Pi)*erf(x)/2/x <= 1 for x >= 0. This means that
+           if x^2/3 < 2^(-PREC(y)-1) we can decide of the correct rounding,
+           unless we have a worst-case for 2x/sqrt(Pi). */
+        if x.exponent < -HDecimal.digits/2 {
+            /* we use 2x/sqrt(Pi) (1 - x^2/3) <= erf(x) <= 2x/sqrt(Pi) for x > 0
+               and 2x/sqrt(Pi) <= erf(x) <= 2x/sqrt(Pi) (1 - x^2/3) for x < 0.
+               In both cases |2x/sqrt(Pi) (1 - x^2/3)| <= |erf(x)| <= |2x/sqrt(Pi)|.
+               We will compute l and h such that l <= |2x/sqrt(Pi) (1 - x^2/3)|
+               and |2x/sqrt(Pi)| <= h. If l and h round to the same value to
+               precision PREC(y) and rounding rnd_mode, then we are done. */
+            var l, h: HDecimal
+            let savedDigits = HDecimal.digits
+            HDecimal.digits+=17 // increase digits for l, h
+            l = HDecimal(0); h = HDecimal(0)
+            l = HDecimal.one - (x.sqr() / HDecimal(3))  // lower bound 1 - x^2/3
+            h = HDecimal.pi.sqrt()        // upper bound sqrt(pi)
+            l = x * HDecimal.two * l / h  // lower bound |2x/sqrt(pi) (1 - x^2/3)|
+            
+            // now compute h
+            h = HDecimal.pi.sqrt() / HDecimal.two // lower bound sqrt(pi)/2
+            
+            // since sqrt(Pi)/2 < 1, the following should not overflow
+            h = x / h
+            
+            // round to digits
+            HDecimal.digits = savedDigits
+            l = l + HDecimal.zero
+            h = h + HDecimal.zero
+            if l == h { return h }
+        }
+        
+        var xf = x / HDecimal.two.ln()   // lower bound |x/log(2)|
+        xf = xf * x
+        if xf > HDecimal(HDecimal.digits+1) {
+            /* |erf x| = 1 or 1-epsilon */
+            return HDecimal(signOf: x, magnitudeOf: HDecimal.one)
+        } else { // use Taylor
+            return x.erf0()
+        }
+    }
+    
+    /// evaluates erf(x) using the expansion at x=0:
+    ///
+    ///   erf(x) = 2/sqrt(Pi) * sum((-1)^k*x^(2k+1)/k!/(2k+1), k=0..infinity)
+   ///
+   ///    Assumes x is neither NaN nor infinite nor zero.
+   ///    Assumes also that e*x^2 <= n (target precision).
+    private func erf0 () -> HDecimal {
+        let n = HDecimal.digits
+        
+        // working precision
+        let xf2 = self.sqr()
+        let m = n + xf2.log2().int + 8 + Int(Double.log2(Double(n)).rounded(.up))
+        HDecimal.digits = m
+        
+        let x = self
+        var y = HDecimal(0), s = HDecimal(0), t = HDecimal(0), u = HDecimal(0)
+        
+        while true {
+            y = x.sqr(); s = HDecimal.one; t = HDecimal.one
+            var tauk = 0.0
+            for k in 1... {
+                t = y * t / HDecimal(k)
+                u = t / HDecimal(2*k+1)
+                var sigmak = s.exponent
+                if !sigmak.isMultiple(of: 2) {
+                    s = s - u
+                } else {
+                    s = s + u
+                }
+                sigmak -= s.exponent
+                let nuk = u.exponent - s.exponent
+                if nuk < -m && HDecimal(k) >= xf2 { break }
+                tauk = 0.5 + mul2exp(tauk, sigmak) + mul2exp(Double(1 + 8 * k), nuk)
+            }
+            
+            s = x * s
+            s = HDecimal(sign: .plus, exponent: s.exponent+1, significand: s)
+            t = HDecimal.pi.sqrt()
+            s = t / s
+            tauk = 4 * tauk + 11  /* final ulp-error on s */
+//            let log2tauk = Double.log2(tauk)
+            
+        }
+        
+    }
+    
+    private func mul2exp(_ x: Double, _ e: Int) -> Double {
+        var x = x
+        var e = e
+        if e > 0 {
+            while e > 0 { x *= 2.0; e-=1 }
+        } else {
+            while e < 0 { x /= 2.0; e+=1 }
+        }
+        return x
     }
     
     func factorial() -> HDecimal { Utilities.factorial(self) }

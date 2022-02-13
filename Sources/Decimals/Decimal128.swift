@@ -615,14 +615,14 @@ extension Decimal128 : Real {
         return xn
     }
     
-    // Ok, I cheated and used the decNumber math functions.
+    // Ok, I cheated and used the HDecimal math functions.
     // They are calculated only to correct number of digits for Decimal128 numbers.
-    public static func atan2(y: Decimal128, x: Decimal128) -> Decimal128 { Decimal128(Double.atan2(y:y.doubleValue, x:x.doubleValue)) }
-    public static func erf(_ x: Decimal128) -> Decimal128 { Decimal128(Double.erf(x.doubleValue)) }
-    public static func erfc(_ x: Decimal128) -> Decimal128 { Decimal128(Double.erfc(x.doubleValue)) }
+    public static func atan2(y: Decimal128, x: Decimal128) -> Decimal128 { Decimal128(HDecimal.atan2(y: HDecimal(y.number), x: HDecimal(x.number))) }
+    public static func erf(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.erf(HDecimal(x.number))) }
+    public static func erfc(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.erfc(HDecimal(x.number))) }
     public static func exp2(_ x: Decimal128) -> Decimal128 { pow(2, x) }
-    public static func hypot(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Decimal128(Double.hypot(x.doubleValue, y.doubleValue)) }
-    public static func gamma(_ x: Decimal128) -> Decimal128 { Decimal128(Double.gamma(x.doubleValue)) }
+    public static func hypot(_ x: Decimal128, _ y: Decimal128) -> Decimal128 { Decimal128(HDecimal.hypot(HDecimal(x.number), HDecimal(y.number))) }
+    public static func gamma(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.gamma(HDecimal(x.number))) }
     public static func log2(_ x: Decimal128) -> Decimal128 { log(x)/Decimal128(Utilities.ln2String)! }
     public static func log10(_ x: Decimal128) -> Decimal128 {
         var xn = x.number
@@ -630,14 +630,14 @@ extension Decimal128 : Real {
         decNumberLog10(&res, &xn, &Decimal128.context.base)
         return Decimal128(res)
     }
-    public static func logGamma(_ x: Decimal128) -> Decimal128 { Decimal128(Double.logGamma(x.doubleValue)) }
+    public static func logGamma(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.logGamma(HDecimal(x.number))) }
     public static func exp(_ x: Decimal128) -> Decimal128 {
         var xn = x.number
         var res = decNumber()
         decNumberExp(&res, &xn, &Decimal128.context.base)
         return Decimal128(res)
     }
-    public static func expMinusOne(_ x: Decimal128) -> Decimal128 { Decimal128(Double.expMinusOne(x.doubleValue)) }
+    public static func expMinusOne(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.expMinusOne(HDecimal(x.number))) }
     public static func cosh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.cosh(HDecimal(x.number))) }
     public static func sinh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.sinh(HDecimal(x.number))) }
     public static func tanh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.tanh(HDecimal(x.number))) }
@@ -650,7 +650,7 @@ extension Decimal128 : Real {
         decNumberLn(&res, &xn, &Decimal128.context.base)
         return Decimal128(res)
     }
-    public static func log(onePlus x: Decimal128) -> Decimal128 { Decimal128(Double.log(onePlus: x.doubleValue)) }
+    public static func log(onePlus x: Decimal128) -> Decimal128 { Decimal128(HDecimal.log(onePlus: HDecimal(x.number))) }
     public static func acosh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.acosh(HDecimal(x.number))) }
     public static func asinh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.asinh(HDecimal(x.number))) }
     public static func atanh(_ x: Decimal128) -> Decimal128 { Decimal128(HDecimal.atanh(HDecimal(x.number))) }

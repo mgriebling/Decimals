@@ -120,6 +120,10 @@ final class DecimalsTests: XCTestCase {
         XCTAssertEqual(Decimal32.pi.description,  "3.141593")
         XCTAssertEqual(Decimal64.pi.description,  "3.141592653589793")
         XCTAssertEqual(Decimal128.pi.description, "3.141592653589793238462643383279503")
+        
+        let a = HDecimal.random(in: 0..<1)
+        XCTAssert(a >= 0 && a < 1)
+        print("HDecimal.random(0..<1) = \(a)")
     }
     
     func testEncodingDecimal128() {
@@ -699,6 +703,14 @@ final class DecimalsTests: XCTestCase {
 
         // narrowing case
         test("2.00E-99", result: "00000100")
+    }
+    
+    func testStringToDecimal() {
+
+        measure {
+            let _ = HDecimal(Utilities.piString)
+        }
+        
     }
     
 }
