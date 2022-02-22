@@ -424,7 +424,7 @@ extension Decimal64 : AdditiveArithmetic {
 
 extension Decimal64: LogicalOperations {
     
-    var single: decDouble { self.double }
+    public var single: decDouble { self.double }
     
     private func convert (fromBase from: Int, toBase base: Int) -> Decimal64 {
         Utilities.convert(num: self, fromBase: from, toBase: base)
@@ -437,31 +437,31 @@ extension Decimal64: LogicalOperations {
     public func base10 () -> Decimal64 { convert(fromBase: 2, toBase: 10) }
     
     // MARK: - Compliance to LogicalOperations
-    func logical() -> decDouble { self.logical().double }
-    func base10(_ a: decDouble) -> Decimal64 { Decimal64(a).base10() }
+    public func logical() -> decDouble { self.double }
+    public func base10(_ a: decDouble) -> Decimal64 { Decimal64(a) }
     public var zero: decDouble { decDouble() }
     
-    func decOr(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decOr(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleOr(a, b, c, &Decimal64.context.base)
     }
 
-    func decAnd(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decAnd(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleAnd(a, b, c,&Decimal64.context.base)
     }
     
-    func decXor(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decXor(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleXor(a, b, c, &Decimal64.context.base)
     }
     
-    func decShift(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decShift(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleShift(a, b, c, &Decimal64.context.base)
     }
     
-    func decRotate(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decRotate(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleRotate(a, b, c, &Decimal64.context.base)
     }
     
-    func decInvert(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!) {
+    public func decInvert(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!) {
         decDoubleInvert(a, b, &Decimal64.context.base)
     }
     

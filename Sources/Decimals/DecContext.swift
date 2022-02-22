@@ -69,20 +69,20 @@ public struct DecContext {
         
         public let rawValue: Int32
         
-        static let conversionSyntax    = Status(rawValue: DEC_Conversion_syntax)
-        static let divisionByZero      = Status(rawValue: DEC_Division_by_zero)
-        static let divisionImpossible  = Status(rawValue: DEC_Division_impossible)
-        static let divisionUndefined   = Status(rawValue: DEC_Division_undefined)
-        static let insufficientStorage = Status(rawValue: DEC_Insufficient_storage)
-        static let inexact             = Status(rawValue: DEC_Inexact)
-        static let invalidContext      = Status(rawValue: DEC_Invalid_context)
-        static let invalidOperation    = Status(rawValue: DEC_Invalid_operation)
-        static let overflow            = Status(rawValue: DEC_Overflow)
-        static let clamped             = Status(rawValue: DEC_Clamped)
-        static let rounded             = Status(rawValue: DEC_Rounded)
-        static let subnormal           = Status(rawValue: DEC_Subnormal)
-        static let underflow           = Status(rawValue: DEC_Underflow)
-        static let clearFlags          = Status([])
+        public static let conversionSyntax    = Status(rawValue: DEC_Conversion_syntax)
+        public static let divisionByZero      = Status(rawValue: DEC_Division_by_zero)
+        public static let divisionImpossible  = Status(rawValue: DEC_Division_impossible)
+        public static let divisionUndefined   = Status(rawValue: DEC_Division_undefined)
+        public static let insufficientStorage = Status(rawValue: DEC_Insufficient_storage)
+        public static let inexact             = Status(rawValue: DEC_Inexact)
+        public static let invalidContext      = Status(rawValue: DEC_Invalid_context)
+        public static let invalidOperation    = Status(rawValue: DEC_Invalid_operation)
+        public static let overflow            = Status(rawValue: DEC_Overflow)
+        public static let clamped             = Status(rawValue: DEC_Clamped)
+        public static let rounded             = Status(rawValue: DEC_Rounded)
+        public static let subnormal           = Status(rawValue: DEC_Subnormal)
+        public static let underflow           = Status(rawValue: DEC_Underflow)
+        public static let clearFlags          = Status([])
         
         public static let errorFlags = Status(rawValue: DEC_IEEE_754_Division_by_zero | DEC_IEEE_754_Overflow |
             DEC_IEEE_754_Underflow | DEC_Conversion_syntax | DEC_Division_impossible |
@@ -126,6 +126,7 @@ public struct DecContext {
         assert(decContextTestEndian(1) == 0, "Error: Endian flag \"DECLITEND\" is incorrectly set")
         self.initKind = initKind
         decContextDefault(&base, initKind.value)
+        
     }
     
 }

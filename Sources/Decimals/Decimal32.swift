@@ -208,7 +208,7 @@ extension Decimal32 {
     
     // MARK: - Basic Operations
     
-    internal init(_ value: decDouble) {
+    public init(_ value: decDouble) {
         var d = value
         var s = decSingle()
         decSingleFromWider(&s, &d, &Decimal32.context.base)
@@ -411,7 +411,7 @@ extension Decimal32 : ExpressibleByStringLiteral {
 
 extension Decimal32: LogicalOperations {
 
-    private func convert (fromBase from: Int, toBase base: Int) -> Decimal32 {
+    public func convert (fromBase from: Int, toBase base: Int) -> Decimal32 {
         Utilities.convert(num: self, fromBase: from, toBase: base)
     }
     
@@ -422,31 +422,31 @@ extension Decimal32: LogicalOperations {
     public func base10 () -> Decimal32 { convert(fromBase: 2, toBase: 10) }
     
     // MARK: - Compliance to LogicalOperations
-    func logical() -> decDouble { self.logical().double }
-    func base10(_ a: decDouble) -> Decimal32 { Decimal32(a).base10() }
+    public func logical() -> decDouble { self.double }
+    public func base10(_ a: decDouble) -> Decimal32 { Decimal32(a) }
     public var zero: decDouble { decDouble() }
     
-    func decOr(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decOr(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleOr(a, b, c, &Decimal32.context.base)
     }
 
-    func decAnd(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decAnd(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleAnd(a, b, c,&Decimal32.context.base)
     }
     
-    func decXor(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decXor(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleXor(a, b, c, &Decimal32.context.base)
     }
     
-    func decShift(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decShift(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleShift(a, b, c, &Decimal32.context.base)
     }
     
-    func decRotate(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
+    public func decRotate(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleRotate(a, b, c, &Decimal32.context.base)
     }
     
-    func decInvert(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!) {
+    public func decInvert(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!) {
         decDoubleInvert(a, b, &Decimal32.context.base)
     }
     

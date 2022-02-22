@@ -380,15 +380,7 @@ extension Decimal128 : CustomStringConvertible {
 }
 
 // MARK: - CustomDebugStringConvertible compliance
-extension Decimal128 : CustomDebugStringConvertible {
-//    public var debugDescription: String {
-//        var str = ""
-//        for b in self.bytes {
-//            str += String(format: "%02X", b)
-//        }
-//        return str
-//    }
-}
+extension Decimal128 : CustomDebugStringConvertible { }
 
 extension Decimal128 : Hashable {
     public func hash(into hasher: inout Hasher) {
@@ -416,7 +408,7 @@ extension Decimal128 : ExpressibleByStringLiteral {
 
 extension Decimal128: LogicalOperations {
     
-    var single: decQuad { self.quad }
+    public var single: decQuad { self.quad }
     
     private func convert (fromBase from: Int, toBase base: Int) -> Decimal128 {
         Utilities.convert(num: self, fromBase: from, toBase: base)
@@ -429,31 +421,31 @@ extension Decimal128: LogicalOperations {
     public func base10 () -> Decimal128 { convert(fromBase: 2, toBase: 10) }
     
     // MARK: - Compliance to LogicalOperations
-    func logical() -> decQuad { self.logical().quad }
-    func base10(_ a: decQuad) -> Decimal128 { Decimal128(a).base10() }
+    public func logical() -> decQuad { self.quad }
+    public func base10(_ a: decQuad) -> Decimal128 { Decimal128(a) }
     public var zero: decQuad { decQuad() }
     
-    func decOr(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
+    public func decOr(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
         decQuadOr(a, b, c, &Decimal128.context.base)
     }
 
-    func decAnd(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
+    public func decAnd(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
         decQuadAnd(a, b, c,&Decimal128.context.base)
     }
     
-    func decXor(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
+    public func decXor(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
         decQuadXor(a, b, c, &Decimal128.context.base)
     }
     
-    func decShift(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
+    public func decShift(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
         decQuadShift(a, b, c, &Decimal128.context.base)
     }
     
-    func decRotate(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
+    public func decRotate(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!, _ c: UnsafePointer<decQuad>!) {
         decQuadRotate(a, b, c, &Decimal128.context.base)
     }
     
-    func decInvert(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!) {
+    public func decInvert(_ a: UnsafeMutablePointer<decQuad>!, _ b: UnsafePointer<decQuad>!) {
         decQuadInvert(a, b, &Decimal128.context.base)
     }
     

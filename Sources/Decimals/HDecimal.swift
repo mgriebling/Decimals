@@ -199,16 +199,18 @@ public struct HDecimal {
     public init?(_ s: String, radix: Int) { self.init(s, digits: 0, radix: radix) }
     
     public init?(_ s: String, digits: Int = 0, radix: Int = 10) {
-        let digits = digits == 0 ? HDecimal.nominalDigits : digits
+        let digits = digits == 0 ? (HDecimal.digits == 0 ? HDecimal.nominalDigits : HDecimal.digits) : digits
         initContext(digits: digits)
         if let x = numberFromString(s, digits: digits, radix: radix) {
             decimal = x.decimal; return
         }
-        return nil
+        decimal = HDecimal.nan.decimal
     }
     
     public func decFromString(_ a: UnsafeMutablePointer<decNumber>!, s: String) {
         decNumberFromString(a, s, &HDecimal.context.base)
+//        if !HDecimal.context.status.isEmpty { print("ERROR: \(HDecimal.context.status)") }
+//        HDecimal.context.status = .clearFlags
     }
     
     public init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int) {
@@ -254,6 +256,7 @@ public struct HDecimal {
     }
     
     private func convert (fromBase from: Int, toBase base: Int) -> HDecimal {
+        if self.isSpecial || from == base { return self }  // ensure NaNs are propagated
         let oldDigits = HDecimal.digits
         HDecimal.digits = HDecimal.maximumDigits
         let y = Utilities.convert(num: self, fromBase: from, toBase: base)
@@ -262,6 +265,7 @@ public struct HDecimal {
     }
     
     public func string(withRadix radix: Int, showBase: Bool = false, showSign: Bool = false) -> String {
+        if self.isSpecial || self.isZero { return self.description }
         var n = self.integer.abs
         
         // restrict to legal radix values 2 to 36
@@ -326,14 +330,13 @@ public struct HDecimal {
         return HDecimal(result2)
     }
     
-    private let DECSPECIAL = UInt8(DECINF|DECNAN|DECSNAN)
-    public var isFinite  : Bool  { (decimal.bits & DECSPECIAL) == 0 }
+    public var isFinite  : Bool  { (decimal.bits & UInt8(DECINF|DECNAN|DECSNAN)) == 0 }
     public var isInfinite: Bool  { (decimal.bits & UInt8(DECINF)) != 0 }
     public var isNaN: Bool       { (decimal.bits & UInt8(DECNAN|DECSNAN)) != 0 }
     public var isNegative: Bool  { (decimal.bits & UInt8(DECNEG)) != 0 }
     public var isZero: Bool      { isFinite && decimal.digits == 1 && decimal.lsu.0 == 0 }
     public var isSubnormal: Bool { var n = decimal; return decNumberIsSubnormal(&n, &HDecimal.context.base) == 1 }
-    public var isSpecial: Bool   { (decimal.bits & DECSPECIAL) != 0 }
+    public var isSpecial: Bool   { (decimal.bits & UInt8(DECINF|DECNAN|DECSNAN)) != 0 }
     public var isCanonical: Bool { true } // "All decNumbers are saintly" - the only joke I found from the original source
     public var isInteger: Bool {
         var local = decimal
@@ -542,35 +545,39 @@ public struct HDecimal {
 
 extension HDecimal: LogicalOperations {
     
-    var single: decNumber { self.decimal }
+    public var single: decNumber { self.decimal }
     
     // MARK: - Compliance to LogicalOperations
-    func logical() -> decNumber { self.logical().decimal }
-    func base10(_ a: decNumber) -> HDecimal { HDecimal(a).base10() }
+    public func logical() -> decNumber {
+//        var s = self.decimal
+//        s.exponent = Swift.min(decimal.exponent, 0)  // ignore overflow
+        return self.decimal
+    }
+    public func base10(_ a: decNumber) -> HDecimal { HDecimal(a) }
     
     public var zero: decNumber { decNumber() }
     
-    func decOr(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
+    public func decOr(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
         decNumberOr(a, b, c, &HDecimal.context.base)
     }
 
-    func decAnd(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
+    public func decAnd(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
         decNumberAnd(a, b, c, &HDecimal.context.base)
     }
     
-    func decXor(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
+    public func decXor(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
         decNumberXor(a, b, c, &HDecimal.context.base)
     }
     
-    func decShift(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
+    public func decShift(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
         decNumberShift(a, b, c, &HDecimal.context.base)
     }
     
-    func decRotate(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
+    public func decRotate(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!, _ c: UnsafePointer<decNumber>!) {
         decNumberRotate(a, b, c, &HDecimal.context.base)
     }
     
-    func decInvert(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!) {
+    public func decInvert(_ a: UnsafeMutablePointer<decNumber>!, _ b: UnsafePointer<decNumber>!) {
         decNumberInvert(a, b, &HDecimal.context.base)
     }
 }

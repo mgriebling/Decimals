@@ -153,13 +153,13 @@ struct Utilities {
         return exp < 0 ? 1 / y : y
     }
     
-    fileprivate static func digitToInt(_ digit: Character) -> Int? {
-        let radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        if let digitIndex = radixDigits.firstIndex(of: digit) {
-            return radixDigits.distance(from: radixDigits.startIndex, to:digitIndex)
-        }
-        return nil   // Error illegal radix character
-    }
+//    fileprivate static func digitToInt(_ digit: Character, radix: Int) -> Int? {
+//        let radixDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//        if let digitIndex = radixDigits.firstIndex(of: digit) {
+//            return radixDigits.distance(from: radixDigits.startIndex, to:digitIndex)
+//        }
+//        return nil   // Error illegal radix character
+//    }
     
     ///
     /// Returns the approximate value of decimal number _num_ as a double
@@ -362,7 +362,7 @@ extension decSingle : DecNumbers { }
 extension decDouble : DecNumbers { }
 extension decQuad   : DecNumbers { }
 
-protocol LogicalOperations : Real {
+public protocol LogicalOperations : Real {
     
     associatedtype T : DecNumbers
     associatedtype R : DecNumbers
@@ -390,15 +390,15 @@ protocol LogicalOperations : Real {
     var abs: Self { get }
 }
 
-extension LogicalOperations {
+public extension LogicalOperations {
     
     // Mark: - Operators
-    static public func % (lhs: Self, rhs: Self) -> Self { lhs.remainder(rhs) }
-    static public func %= (a: inout Self, b: Self) { a = a % b }
-    static public func / (lhs: Self, rhs: Self) -> Self { lhs.div(rhs) }
+    static func % (lhs: Self, rhs: Self) -> Self { lhs.remainder(rhs) }
+    static func %= (a: inout Self, b: Self) { a = a % b }
+    static func / (lhs: Self, rhs: Self) -> Self { lhs.div(rhs) }
     
     // MARK: - Logical Operations
-    public func or (_ a: Self) -> Self {
+    func or (_ a: Self) -> Self {
         var b = a.logical()
         var a = self.logical()
         var result = zero
@@ -406,7 +406,7 @@ extension LogicalOperations {
         return base10(result)
     }
 
-    public func and (_ a: Self) -> Self {
+    func and (_ a: Self) -> Self {
         var b = a.logical()
         var a = self.logical()
         var result = zero
@@ -414,7 +414,7 @@ extension LogicalOperations {
         return base10(result)
     }
 
-    public func xor (_ a: Self) -> Self {
+    func xor (_ a: Self) -> Self {
         var b = a.logical()
         var a = self.logical()
         var result = zero
@@ -422,14 +422,14 @@ extension LogicalOperations {
         return base10(result)
     }
 
-    public func not () -> Self {
+    func not () -> Self {
         var a = self.logical()
         var result = zero
         decInvert(&result, &a)
         return base10(result)
     }
 
-    public func shift (_ a: Self) -> Self {
+    func shift (_ a: Self) -> Self {
         var b = a.logical()
         var a = self.logical()
         var result = zero
@@ -437,7 +437,7 @@ extension LogicalOperations {
         return base10(result)
     }
 
-    public func rotate (_ a: Self) -> Self {
+    func rotate (_ a: Self) -> Self {
         var b = a.logical()
         var a = self.logical()
         var result = zero
@@ -446,8 +446,8 @@ extension LogicalOperations {
     }
     
     /// Converts a decimal number string to a Decimal number
-    public func numberFromString(_ string: String, digits: Int = 0, radix: Int = 10) -> Self? {
-        let ls = string.replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores & force uppercase
+    func numberFromString(_ string: String, digits: Int = 0, radix: Int = 10) -> Self? {
+        let ls = string.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores, spaces & force uppercase
         if radix == 10 {
             // use library function for string conversion
             var number = single
@@ -457,8 +457,8 @@ extension LogicalOperations {
             // convert non-base 10 string to an integral Decimal number
             var number = Self(0)
             let radixNumber = Self(radix)
-            for digit in string {
-                if let digitNumber = Utilities.digitToInt(digit) {
+            for digit in ls {
+                if let digitNumber = Int(String(digit), radix: radix) {
                     number = fma(number, radixNumber, Self(digitNumber))
                 } else {
                     return nil
@@ -481,7 +481,7 @@ extension LogicalOperations {
     static func |= (a: inout Self, b: Self) { a = a | b }
     static func ^= (a: inout Self, b: Self) { a = a ^ b }
     
-    static func << (a: Self, b: Self) -> Self { a.shift( b.abs) }
-    static func >> (a: Self, b: Self) -> Self { a.shift( b.abs.negate()) }
+    static func << (a: Self, b: Self) -> Self { a.shift(b.abs) }
+    static func >> (a: Self, b: Self) -> Self { a.shift(b.abs.negate()) }
     
 }
