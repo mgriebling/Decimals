@@ -118,9 +118,9 @@ public struct Decimal64 {
         }
     }
     
-    public static var roundMethod : rounding {
-        get { decContextGetRounding(&context.base) }
-        set { decContextSetRounding(&context.base, newValue) }
+    public static var roundMethod : DecContext.RoundingType {
+        get { context.roundMode }
+        set { context.roundMode = newValue }
     }
     
     /// Returns all digits of the binary-coded decimal (BCD) digits of the number with
@@ -223,7 +223,7 @@ extension Decimal64 {
     public var integer : Decimal64 {
         var a = self.double
         var result = decDouble()
-        decDoubleToIntegralValue(&result, &a, &Decimal64.context.base, Decimal64.roundMethod)
+        decDoubleToIntegralValue(&result, &a, &Decimal64.context.base, Decimal64.roundMethod.value)
         return Decimal64(result)
     }
     

@@ -118,9 +118,9 @@ public struct Decimal128 {
         }
     }
     
-    public static var roundMethod : rounding {
-        get { decContextGetRounding(&context.base) }
-        set { decContextSetRounding(&context.base, newValue) }
+    public static var roundMethod : DecContext.RoundingType {
+        get { context.roundMode }
+        set { context.roundMode = newValue }
     }
     
     /// Returns all digits of the binary-coded decimal (BCD) digits of the number with
@@ -225,7 +225,7 @@ extension Decimal128 {
     public var integer : Decimal128 {
         var a = self.quad
         var result = decQuad()
-        decQuadToIntegralValue(&result, &a, &Decimal128.context.base, Decimal128.roundMethod)
+        decQuadToIntegralValue(&result, &a, &Decimal128.context.base, Decimal128.roundMethod.value)
         return Decimal128(result)
     }
     

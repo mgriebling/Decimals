@@ -83,9 +83,9 @@ public struct HDecimal {
     
     public static func clearStatus() { context.status = .clearFlags }
     
-    public static var roundMethod : rounding {
-        get { decContextGetRounding(&context.base) }
-        set { decContextSetRounding(&context.base, newValue) }
+    public static var roundMethod : DecContext.RoundingType {
+        get { context.roundMode }
+        set { context.roundMode = newValue }
     }
     
     public static var digits : Int {

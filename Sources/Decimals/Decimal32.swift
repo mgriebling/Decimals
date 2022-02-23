@@ -98,9 +98,9 @@ public struct Decimal32 {
         return String(cString: cs!)
     }
     
-    public static var roundMethod : rounding {
-        get { decContextGetRounding(&context.base) }
-        set { decContextSetRounding(&context.base, newValue) }
+    public static var roundMethod : DecContext.RoundingType {
+        get { context.roundMode }
+        set { context.roundMode = newValue }
     }
     
     public var floatingPointClass: FloatingPointClassification {
@@ -228,7 +228,7 @@ extension Decimal32 {
     public var integer : Decimal32 {
         var a = self.double
         var result = decDouble()
-        decDoubleToIntegralValue(&result, &a, &Decimal32.context.base, Decimal32.roundMethod)
+        decDoubleToIntegralValue(&result, &a, &Decimal32.context.base, Decimal32.roundMethod.value)
         return Decimal32(result)
     }
     
