@@ -529,11 +529,14 @@ extension Decimal128 : FloatingPoint {
     public var nextUp: Decimal128 {
         var a = self.quad
         var result = decQuad()
-        if isNegative {
-            decQuadNextPlus(&result, &a, &Decimal128.context.base)
-        } else {
-            decQuadNextPlus(&result, &a, &Decimal128.context.base)
-        }
+        decQuadNextPlus(&result, &a, &Decimal128.context.base)
+        return Decimal128(result)
+    }
+    
+    public var nextDown: Decimal128 {
+        var a = self.quad
+        var result = decQuad()
+        decQuadNextMinus(&result, &a, &Decimal128.context.base)
         return Decimal128(result)
     }
     

@@ -96,11 +96,14 @@ public struct HDecimal {
     public var nextUp: HDecimal {
         var a = decimal
         var result = decNumber()
-        if isNegative {
-            decNumberNextMinus(&result, &a, &HDecimal.context.base)
-        } else {
-            decNumberNextPlus(&result, &a, &HDecimal.context.base)
-        }
+        decNumberNextPlus(&result, &a, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    public var nextDown: HDecimal {
+        var a = decimal
+        var result = decNumber()
+        decNumberNextMinus(&result, &a, &HDecimal.context.base)
         return HDecimal(result)
     }
     

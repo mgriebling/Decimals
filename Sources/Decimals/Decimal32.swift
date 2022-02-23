@@ -529,14 +529,14 @@ extension Decimal32 : FloatingPoint {
     public var nextUp: Decimal32 {
         var a = self.double
         var result = decDouble()
-        let digits = Decimal32.context.digits
-        let round = Decimal32.context.roundMode
-        print(digits, round)
-        if isNegative {
-            decDoubleNextMinus(&result, &a, &Decimal32.context.base)
-        } else {
-            decDoubleNextPlus(&result, &a, &Decimal32.context.base)
-        }
+        decDoubleNextPlus(&result, &a, &Decimal32.context.base)
+        return Decimal32(result)
+    }
+    
+    public var nextDown: Decimal32 {
+        var a = self.double
+        var result = decDouble()
+        decDoubleNextMinus(&result, &a, &Decimal32.context.base)
         return Decimal32(result)
     }
     

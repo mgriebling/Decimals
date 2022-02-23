@@ -535,11 +535,14 @@ extension Decimal64 : FloatingPoint {
     public var nextUp: Decimal64 {
         var a = self.double
         var result = decDouble()
-        if isNegative {
-            decDoubleNextPlus(&result, &a, &Decimal64.context.base)
-        } else {
-            decDoubleNextPlus(&result, &a, &Decimal64.context.base)
-        }
+        decDoubleNextPlus(&result, &a, &Decimal64.context.base)
+        return Decimal64(result)
+    }
+    
+    public var nextDown: Decimal64 {
+        var a = self.double
+        var result = decDouble()
+        decDoubleNextMinus(&result, &a, &Decimal64.context.base)
         return Decimal64(result)
     }
     
