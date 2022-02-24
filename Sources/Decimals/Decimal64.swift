@@ -546,6 +546,32 @@ extension Decimal64 : FloatingPoint {
         return Decimal64(result)
     }
     
+    /// Return true if the exponents of *self* and *n* are the same.
+    public func sameQuantum(_ n: Decimal64) -> Bool {
+        var a = double
+        var n = n.double
+        let result = decDoubleSameQuantum(&a, &n)
+        return result != 0
+    }
+    
+    /// Returns *self* with the exponent set to *n*'s exponent.
+    public func quantize(_ n: Decimal64) -> Decimal64 {
+        var a = double
+        var n = n.double
+        var result = decDouble()
+        decDoubleQuantize(&result, &a, &n, &Decimal64.context.base)
+        return Decimal64(result)
+    }
+    
+    /// Returns a *normalized* version of *self* with the shortest
+    /// possible form.
+    public var reduce: Decimal64 {
+        var a = double
+        var result = decDouble()
+        decDoubleReduce(&result, &a, &Decimal64.context.base)
+        return Decimal64(result)
+    }
+    
     public func isEqual(to other: Decimal64) -> Bool { self == other }
     public func isLess(than other: Decimal64) -> Bool { self < other }
     public func isLessThanOrEqualTo(_ other: Decimal64) -> Bool { Decimal64.compare(lhs: self, rhs: other) <= 0 }

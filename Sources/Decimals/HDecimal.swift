@@ -93,6 +93,7 @@ public struct HDecimal {
         set { context.digits = newValue }
     }
     
+    // Returns the next smallest increment toward *+infinity*.
     public var nextUp: HDecimal {
         var a = decimal
         var result = decNumber()
@@ -100,11 +101,55 @@ public struct HDecimal {
         return HDecimal(result)
     }
     
+    // Returns the next smallest increment toward *-infinity*.
     public var nextDown: HDecimal {
         var a = decimal
         var result = decNumber()
         decNumberNextMinus(&result, &a, &HDecimal.context.base)
         return HDecimal(result)
+    }
+    
+    /// Returns the next smallest increment from *self* toward *n*.
+    public func nextToward(_ n: HDecimal) -> HDecimal {
+        var a = decimal
+        var n = n.decimal
+        var result = decNumber()
+        decNumberNextToward(&result, &a, &n, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    /// Return true if the exponents of *self* and *n* are the same.
+    public func sameQuantum(_ n: HDecimal) -> Bool {
+        var a = decimal
+        var n = n.decimal
+        var result = decNumber()
+        decNumberSameQuantum(&result, &a, &n)
+        return !HDecimal(result).isZero
+    }
+    
+    /// Returns *self* with the exponent set to *n*'s exponent.
+    public func quantize(_ n: HDecimal) -> HDecimal {
+        var a = decimal
+        var n = n.decimal
+        var result = decNumber()
+        decNumberQuantize(&result, &a, &n, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    /// Returns a *normalized* version of *self* with the shortest
+    /// possible form.
+    public var reduce: HDecimal {
+        var a = decimal
+        var result = decNumber()
+        decNumberReduce(&result, &a, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    /// Returns a version of *self* with trailing fractional zeros removed.
+    public var trim: HDecimal {
+        var a = decimal
+        decNumberTrim(&a)
+        return HDecimal(a)
     }
     
     public mutating func round(_ rule: FloatingPointRoundingRule) {
@@ -402,6 +447,22 @@ public struct HDecimal {
         return HDecimal(result)
     }
     
+    public func maxMag (_ b: HDecimal) -> HDecimal {
+        var b = b
+        var a = decimal
+        var result = decNumber()
+        decNumberMaxMag(&result, &a, &b.decimal, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
+    public func minMag (_ b: HDecimal) -> HDecimal {
+        var b = b
+        var a = decimal
+        var result = decNumber()
+        decNumberMinMag(&result, &a, &b.decimal, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
     public var abs : HDecimal {
         var a = decimal
         var result = decNumber()
@@ -461,9 +522,9 @@ public struct HDecimal {
 
     /// Rounds to *digits* places where negative values limit the decimal places
     /// and positive values limit the number to multiples of 10 ** digits.
-    public func round (_ digits: Int) -> HDecimal {
+    public func round (_ digits: HDecimal) -> HDecimal {
         var a = decimal
-        var b = HDecimal(digits)
+        var b = digits
         var result = decNumber()
         decNumberRescale(&result, &a, &b.decimal, &HDecimal.context.base)
         return HDecimal(result)

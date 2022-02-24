@@ -711,18 +711,12 @@ final class DecimalsTests: XCTestCase {
         
         func testXor (_ lhs:String, _ rhs:String, _ result:String) {
             testNumber += 1
+            let oldDigits = HDecimal.digits
+            HDecimal.digits = HDecimal.maximumDigits
             let lhsn = HDecimal(lhs)!
-            if !HDecimal.context.status.isEmpty {
-                print("Number \(lhsn) too large")
-            }
             let rhsn = HDecimal(rhs)!
-            if !HDecimal.context.status.isEmpty {
-                print("Number \(rhsn) too large")
-            }
+            HDecimal.digits = oldDigits
             let n = lhsn.xor(rhsn)
-            if !HDecimal.context.status.isEmpty {
-                print("Invalid operation")
-            }
             print("Test \(testNumber): \(lhs) xor \(rhs) -> \(result)")
             XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
         }

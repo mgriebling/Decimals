@@ -540,6 +540,31 @@ extension Decimal32 : FloatingPoint {
         return Decimal32(result)
     }
     
+    public func sameQuantum(_ n: Decimal32) -> Bool {
+        var a = double
+        var n = n.double
+        let result = decDoubleSameQuantum(&a, &n)
+        return result != 0
+    }
+    
+    /// Returns *self* with the exponent set to *n*'s exponent.
+    public func quantize(_ n: Decimal32) -> Decimal32 {
+        var a = double
+        var n = n.double
+        var result = decDouble()
+        decDoubleQuantize(&result, &a, &n, &Decimal32.context.base)
+        return Decimal32(result)
+    }
+    
+    /// Returns a *normalized* version of *self* with the shortest
+    /// possible form.
+    public var reduce: Decimal64 {
+        var a = double
+        var result = decDouble()
+        decDoubleReduce(&result, &a, &Decimal64.context.base)
+        return Decimal64(result)
+    }
+    
     public func isEqual(to other: Decimal32) -> Bool { self == other }
     public func isLess(than other: Decimal32) -> Bool { self < other }
     public func isLessThanOrEqualTo(_ other: Decimal32) -> Bool { Decimal32.compare(lhs: self, rhs: other) <= 0 }

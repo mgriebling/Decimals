@@ -260,6 +260,22 @@ extension Decimal128 {
         return Decimal128(result)
     }
     
+    public func maxMag (_ b: Decimal128) -> Decimal128 {
+        var b = b.quad
+        var a = self.quad
+        var result = decQuad()
+        decQuadMaxMag(&result, &a, &b, &Decimal128.context.base)
+        return Decimal128(result)
+    }
+    
+    public func minMag (_ b: Decimal128) -> Decimal128 {
+        var b = b.quad
+        var a = self.quad
+        var result = decQuad()
+        decQuadMinMag(&result, &a, &b, &Decimal128.context.base)
+        return Decimal128(result)
+    }
+    
     public var abs : Decimal128 {
         var a = self.quad
         var result = decQuad()
@@ -537,6 +553,41 @@ extension Decimal128 : FloatingPoint {
         var a = self.quad
         var result = decQuad()
         decQuadNextMinus(&result, &a, &Decimal128.context.base)
+        return Decimal128(result)
+    }
+    
+    /// Returns the next smallest increment from *self* toward *n*.
+    public func nextToward(_ n: Decimal128) -> Decimal128 {
+        var a = quad
+        var n = n.quad
+        var result = decQuad()
+        decQuadNextToward(&result, &a, &n, &HDecimal.context.base)
+        return Decimal128(result)
+    }
+    
+    /// Return true if the exponents of *self* and *n* are the same.
+    public func sameQuantum(_ n: Decimal128) -> Bool {
+        var a = quad
+        var n = n.quad
+        let result = decQuadSameQuantum(&a, &n)
+        return result != 0
+    }
+    
+    /// Returns *self* with the exponent set to *n*'s exponent.
+    public func quantize(_ n: Decimal128) -> Decimal128 {
+        var a = quad
+        var n = n.quad
+        var result = decQuad()
+        decQuadQuantize(&result, &a, &n, &Decimal128.context.base)
+        return Decimal128(result)
+    }
+    
+    /// Returns a *normalized* version of *self* with the shortest
+    /// possible form.
+    public var reduce: Decimal128 {
+        var a = quad
+        var result = decQuad()
+        decQuadReduce(&result, &a, &Decimal128.context.base)
         return Decimal128(result)
     }
     
