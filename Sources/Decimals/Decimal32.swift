@@ -24,7 +24,7 @@ public struct Decimal32 {
     /// Class properties
     public static let maximumDigits = Int(DECIMAL32_Pmax)
 
-    static var context = DecContext(initKind: .dec32)
+    static public private(set) var context = DecContext(initKind: .dec32)
     
     /// Active angular measurement unit
     public static var angularMeasure = UnitAngle.radians
