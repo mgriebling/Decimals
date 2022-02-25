@@ -331,7 +331,7 @@ extension Decimal32 : Comparable {
         var rhsd = rhs.double
         var result = decDouble()
         decDoubleCompareTotal(&result, &lhsd, &rhsd)
-        return Int(decDoubleToInt32(&result, &Decimal64.context.base, DecContext.RoundingType.down.value))
+        return Int(decDoubleToInt32(&result, &Decimal32.context.base, DecContext.RoundingType.down.value))
     }
     
     public static func < (lhs: Decimal32, rhs: Decimal32) -> Bool {
@@ -558,11 +558,11 @@ extension Decimal32 : FloatingPoint {
     
     /// Returns a *normalized* version of *self* with the shortest
     /// possible form.
-    public var reduce: Decimal64 {
+    public var reduce: Decimal32 {
         var a = double
         var result = decDouble()
-        decDoubleReduce(&result, &a, &Decimal64.context.base)
-        return Decimal64(result)
+        decDoubleReduce(&result, &a, &Decimal32.context.base)
+        return Decimal32(result)
     }
     
     public func isEqual(to other: Decimal32) -> Bool { self == other }

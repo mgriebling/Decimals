@@ -561,7 +561,7 @@ extension Decimal128 : FloatingPoint {
         var a = quad
         var n = n.quad
         var result = decQuad()
-        decQuadNextToward(&result, &a, &n, &HDecimal.context.base)
+        decQuadNextToward(&result, &a, &n, &Decimal128.context.base)
         return Decimal128(result)
     }
     
