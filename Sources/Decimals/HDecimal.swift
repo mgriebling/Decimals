@@ -145,6 +145,16 @@ public struct HDecimal {
         return HDecimal(result)
     }
     
+    /// Returns *self* scaled by *n* decimal places where
+    /// *n* must be an integral number with no more than nine digits.
+    public func rescale(_ n: HDecimal) -> HDecimal {
+        var a = decimal
+        var n = n.decimal
+        var result = decNumber()
+        decNumberRescale(&result, &a, &n, &HDecimal.context.base)
+        return HDecimal(result)
+    }
+    
     /// Returns a version of *self* with trailing fractional zeros removed.
     public var trim: HDecimal {
         var a = decimal
