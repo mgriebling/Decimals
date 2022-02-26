@@ -58,7 +58,7 @@ public struct DecContext {
         }
     }
  
-    public struct Status: OptionSet {
+    public struct Status: OptionSet, CustomStringConvertible {
         public let rawValue: Int32
         
         public static let conversionSyntax    = Status(rawValue: DEC_Conversion_syntax)
@@ -83,13 +83,16 @@ public struct DecContext {
         public init(rawValue: Int32) {
             self.rawValue = rawValue
         }
+        
+        public var description: String {
+            var context = decContext()
+            context.status = UInt32(self.rawValue)
+            let str = decContextStatusToString(&context)!
+            return String(cString: str)
+        }
     }
     
-    public var statusString: String {
-        var context = base
-        let str = decContextStatusToString(&context)!
-        return String(cString: str)
-    }
+    public var statusString: String { status.description }
     
     var base: decContext
     var initKind: ContextInitType
