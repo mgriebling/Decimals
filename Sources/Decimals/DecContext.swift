@@ -58,15 +58,7 @@ public struct DecContext {
         }
     }
  
-    public struct Status: OptionSet, CustomStringConvertible {
-        
-        public var description: String {
-            var context = decContext()
-            decContextSetStatusQuiet(&context, UInt32(rawValue))
-            let str = decContextStatusToString(&context)!
-            return String(cString: str)
-        }
-        
+    public struct Status: OptionSet {
         public let rawValue: Int32
         
         public static let conversionSyntax    = Status(rawValue: DEC_Conversion_syntax)
@@ -93,8 +85,14 @@ public struct DecContext {
         }
     }
     
-    var base = decContext()
-    let initKind: ContextInitType
+    public var statusString: String {
+        var context = base
+        let str = decContextStatusToString(&context)!
+        return String(cString: str)
+    }
+    
+    var base: decContext
+    var initKind: ContextInitType
     
     private mutating func setRounding(_ round: rounding) { decContextSetRounding(&base, round) }
     private func getRounding() -> rounding { var context = base; return decContextGetRounding(&context) }
@@ -116,7 +114,7 @@ public struct DecContext {
     public var digits: Int {
         get { Int(base.digits) }
         set {
-            if initKind == .base && newValue > 0 && newValue <= DECNUMDIGITS {
+            if newValue > 0  && newValue != base.digits {
                 base.digits = Int32(newValue)
             }
         }
@@ -125,8 +123,9 @@ public struct DecContext {
     init(initKind: ContextInitType) {
         assert(decContextTestEndian(1) == 0, "Error: Endian flag \"DECLITEND\" is incorrectly set")
         self.initKind = initKind
+        self.base = decContext()
         decContextDefault(&base, initKind.value)
-        
+        base.traps = 0  // never trap
     }
     
 }

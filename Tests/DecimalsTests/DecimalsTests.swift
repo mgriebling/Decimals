@@ -716,8 +716,10 @@ final class DecimalsTests: XCTestCase {
             let lhsn = HDecimal(lhs)!
             let rhsn = HDecimal(rhs)!
             HDecimal.digits = oldDigits
+            HDecimal.clearStatus()
             let n = lhsn.xor(rhsn)
-            print("Test \(testNumber): \(lhs) xor \(rhs) -> \(result)")
+            let status = HDecimal.context.statusString
+            print("Test \(testNumber): \(lhs) xor \(rhs) -> \(result) [\(status)]")
             XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
         }
         
