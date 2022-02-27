@@ -447,14 +447,15 @@ public extension LogicalOperations {
     
     /// Converts a decimal number string to a Decimal number
     func numberFromString(_ string: String, digits: Int = 0, radix: Int = 10) -> Self? {
-        let ls = string.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores, spaces & force uppercase
         if radix == 10 {
+            let ls = string.replacingOccurrences(of: "_", with: "")  // remove underscores, spaces & force uppercase
             // use library function for string conversion
             var number = single
             decFromString(&number, s: ls)
             return Self(number)
         } else {
             // convert non-base 10 string to an integral Decimal number
+            let ls = string.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores, spaces & force uppercase
             var number = Self(0)
             let radixNumber = Self(radix)
             for digit in ls {
