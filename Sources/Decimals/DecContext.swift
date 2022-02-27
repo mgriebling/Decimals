@@ -128,7 +128,7 @@ public struct DecContext {
         get { Int(base.digits) }
         set {
             if newValue > 0  && newValue != base.digits {
-                base.digits = -Int32(newValue)
+                base.digits = Int32(newValue)
             }
         }
     }
