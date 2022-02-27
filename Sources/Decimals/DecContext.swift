@@ -114,11 +114,21 @@ public struct DecContext {
         }
     }
     
+    public var minExponent: Int {
+        get { Int(base.emin) }
+        set { base.emin = Int32(newValue) }
+    }
+    
+    public var maxExponent: Int {
+        get { Int(base.emax) }
+        set { base.emax = Int32(newValue) }
+    }
+    
     public var digits: Int {
         get { Int(base.digits) }
         set {
             if newValue > 0  && newValue != base.digits {
-                base.digits = Int32(newValue)
+                base.digits = -Int32(newValue)
             }
         }
     }
