@@ -39,6 +39,11 @@ public struct HDecimal {
         set { context.minExponent = newValue }
     }
     
+    public static var clamp : Bool {
+        get { context.clamp }
+        set { context.clamp = newValue }
+    }
+    
     static public private(set) var context: DecContext = { DecContext(initKind: .base) }()
     
     /// Active angular measurement unit

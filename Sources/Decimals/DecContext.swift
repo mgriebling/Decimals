@@ -124,6 +124,11 @@ public struct DecContext {
         set { base.emax = Int32(newValue) }
     }
     
+    public var clamp: Bool {
+        get { base.clamp == 1 }
+        set { base.clamp = newValue ? 1 : 0 }
+    }
+    
     public var digits: Int {
         get { Int(base.digits) }
         set {
