@@ -29,10 +29,17 @@ public struct HDecimal {
     public static let minimumExponent = -maximumExponent // minimum adjusted exponent ditto
     public static let nominalDigits = 38                 // number of decimal digits in Apple's Decimal type
     
-    static public private(set) var context: DecContext = {
-        print("Setting the context")
-        return DecContext(initKind: .base)
-    }()
+    public static var activeMaxExp : Int {
+        get { context.maxExponent }
+        set { context.maxExponent = newValue }
+    }
+    
+    public static var activeMinExp : Int {
+        get { context.minExponent }
+        set { context.minExponent = newValue }
+    }
+    
+    static public private(set) var context: DecContext = { DecContext(initKind: .base) }()
     
     /// Active angular measurement unit
     public static var angularMeasure = UnitAngle.radians
@@ -42,7 +49,6 @@ public struct HDecimal {
     
     private func initContext(digits: Int) {
         HDecimal.context.digits = digits
-//        HDecimal.context.status = .clearFlags
         HDecimal.context.base.traps = 0
     }
     
