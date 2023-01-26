@@ -12,18 +12,22 @@ on the native architecture.  Scientific functions currently require the Double d
 
 Here's an simple example that creates two floating point decimal numbers, adds them together, and prints the result along with pi and 2**156:
 
-        let number: HDecimal = "12345678901234567890.12345678901234567890"
-        let number2 = HDecimal(5432109)
-        print("\(number)+\(number2) =", number+number2)
-        print("π =", HDecimal.pi)
-        HDecimal.digits = 128
-        print("2¹⁵⁶ =", HDecimal(2).pow(HDecimal(156)))
+```swift
+   let number: HDecimal = "12345678901234567890.12345678901234567890"
+   let number2 = HDecimal(5432109)
+   print("\(number)+\(number2) =", number+number2)
+   print("π =", HDecimal.pi)
+   HDecimal.digits = 128
+   print("2¹⁵⁶ =", HDecimal(2).pow(HDecimal(156)))
+```
         
 Resulting in:
 
-        12345678901234567890.12345678901234567890+5432109 = 12345678901239999999.123456789012345679
-        π = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446
-        2¹⁵⁶ = 91343852333181432387730302044767688728495783936
+```
+    12345678901234567890.12345678901234567890+5432109 = 12345678901239999999.123456789012345679
+    π = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446
+    2¹⁵⁶ = 91343852333181432387730302044767688728495783936
+```
         
 ## More Examples
 Here are the examples, included with the decNumber library, translated to Swift:
@@ -56,13 +60,12 @@ struct Example1 : ParsableCommand {
         let a = HDecimal(number1)!, b = HDecimal(number2)!
         print("\(a) + \(b) => \(a+b)")
     }
-        
 }
 
 Example1.main()
 ```
 
-This code, which includes an argument parser, gives the following output with this input `example1 1234567890.123456789 8765432109.876543210`:
+This code above, which includes an argument parser, gives the following output with this input `example1 1234567890.123456789 8765432109.876543210`:
 
 ```
 1234567890.123456789 + 8765432109.876543211 => 10000000000.000000000
@@ -84,3 +87,11 @@ The second example calculates compound interest on an initial `investment` at `r
    let total2 = total.rescale(-2)  // round to two digits
    print("Invest $\(investment) at \(rate)% for \(years) years => $\(total2)")  
 ```
+
+gives the following output:
+
+```
+Invest $100000 at 10% for 25 years => $1083470.59
+Program ended with exit code: 0
+```
+

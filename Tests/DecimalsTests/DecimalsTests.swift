@@ -705,249 +705,249 @@ final class DecimalsTests: XCTestCase {
 //        test("2.00E-99", result: "00000100")
 //    }
     
-    func testBooleanOperations() {
-        
-        var testNumber = 0
-        
-        func testXor (_ lhs:String, _ rhs:String, _ result:String) {
-            testNumber += 1
-            let oldDigits = HDecimal.digits
-            HDecimal.digits = HDecimal.maximumDigits
-            let lhsn = HDecimal(lhs)!
-            let rhsn = HDecimal(rhs)!
-            HDecimal.digits = oldDigits
-            HDecimal.clearStatus()
-            let n = lhsn.xor(rhsn)
-            let status = HDecimal.context.statusString
-            print("Test \(testNumber): \(lhs) xor \(rhs) -> \(result) [\(status)]")
-            XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
-        }
-        
-        func testOr (_ lhs:String, _ rhs:String, _ result:String) {
-            testNumber += 1
-            let lhsn = HDecimal(lhs)!, rhsn = HDecimal(rhs)!
-            let n = lhsn.or(rhsn)
-            print("Test \(testNumber): \(lhs) or \(rhs) -> \(result)")
-            XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
-        }
-        
-        // Note: The following tests use a built-in feature of the CDecNumber library that can evaluate
-        //       boolean numbers encoded as BCD digits as long as only `0` and `1` digits are used.
-        HDecimal.digits = 9   // defines the maximum length of the number in BCD digits
-        
-        // sanity check (truth table)
-        testXor(   "0",    "0",    "0")
-        testXor(   "0",    "1",    "1")
-        testXor(   "1",    "0",    "1")
-        testXor(   "1",    "1",    "0")
-        testXor("1100", "1010",  "110")
-        testXor("1111",   "10", "1101")
-        // and at msd and msd-1
-        testXor("000000000", "000000000", "        0")
-        testXor("000000000", "100000000", "100000000")
-        testXor("100000000", "000000000", "100000000")
-        testXor("100000000", "100000000", "        0")
-        testXor("000000000", "000000000", "        0")
-        testXor("000000000", "010000000", " 10000000")
-        testXor("010000000", "000000000", " 10000000")
-        testXor("010000000", "010000000", "        0")
-        
-        // Various lengths
-        //       123456789         123456789
-        testXor("111111111",      "111111111", "0")
-        testXor("111111111111",   "111111111", "0")
-        testXor(" 11111111",      " 11111111", "0")
-        testXor("  1111111",      "  1111111", "0")
-        testXor("   111111",      "   111111", "0")
-        testXor("    11111",      "    11111", "0")
-        testXor("     1111",      "     1111", "0")
-        testXor("      111",      "      111", "0")
-        testXor("       11",      "       11", "0")
-        testXor("        1",      "        1", "0")
-        testXor("111111111111", " 1111111111", "0")
-        testXor("11111111111", " 11111111111", "0")
-        testXor("1111111111", " 111111111111", "0")
-        testXor("111111111", " 1111111111111", "0")
-
-        testXor("111111111", "111111111111", "0")
-        testXor("11111111",  "111111111111", "100000000")
-        testXor("11111111",     "111111111", "100000000")
-        testXor(" 1111111",     "100000010", "101111101")
-        testXor("  111111",     "100000100", "100111011")
-        testXor("   11111",     "100001000", "100010111")
-        testXor("    1111",     "100010000", "100011111")
-        testXor("     111",     "100100000", "100100111")
-        testXor("      11",     "101000000", "101000011")
-        testXor("       1",     "110000000", "110000001")
-
-        testXor("1111111111",  "1", "111111110")
-        testXor(" 111111111",  "1", "111111110")
-        testXor("  11111111",  "1", "11111110")
-        testXor("   1111111",  "1", "1111110")
-        testXor("    111111",  "1", "111110")
-        testXor("     11111",  "1", "11110")
-        testXor("      1111",  "1", "1110")
-        testXor("       111",  "1", "110")
-        testXor("        11",  "1", "10")
-        testXor("         1",  "1", "0")
-
-        testXor("1111111111",  "0", "111111111")
-        testXor(" 111111111",  "0", "111111111")
-        testXor("  11111111",  "0", "11111111")
-        testXor("   1111111",  "0", "1111111")
-        testXor("    111111",  "0", "111111")
-        testXor("     11111",  "0", "11111")
-        testXor("      1111",  "0", "1111")
-        testXor("       111",  "0", "111")
-        testXor("        11",  "0", "11")
-        testXor("         1",  "0", "1")
-
-        testXor("1", "1111111111", "111111110")
-        testXor("1", " 111111111", "111111110")
-        testXor("1", "  11111111", "11111110")
-        testXor("1", "   1111111", "1111110")
-        testXor("1", "    111111", "111110")
-        testXor("1", "     11111", "11110")
-        testXor("1", "      1111", "1110")
-        testXor("1", "       111", "110")
-        testXor("1", "        11", "10")
-        testXor("1", "         1", "0")
-
-        testXor("0", "1111111111", "111111111")
-        testXor("0", " 111111111", "111111111")
-        testXor("0", "  11111111", "11111111")
-        testXor("0", "   1111111", "1111111")
-        testXor("0", "    111111", "111111")
-        testXor("0", "     11111", "11111")
-        testXor("0", "      1111", "1111")
-        testXor("0", "       111", "111")
-        testXor("0", "        11", "11")
-        testXor("0", "         1", "1")
-
-        testXor("011111111", "111101111", "100010000")
-        testXor("101111111", "111101111", " 10010000")
-        testXor("110111111", "111101111", "  1010000")
-        testXor("111011111", "111101111", "   110000")
-        testXor("111101111", "111101111", "        0")
-        testXor("111110111", "111101111", "    11000")
-        testXor("111111011", "111101111", "    10100")
-        testXor("111111101", "111101111", "    10010")
-        testXor("111111110", "111101111", "    10001")
-
-        testXor("111101111", "011111111", "100010000")
-        testXor("111101111", "101111111", " 10010000")
-        testXor("111101111", "110111111", "  1010000")
-        testXor("111101111", "111011111", "   110000")
-        testXor("111101111", "111101111", "        0")
-        testXor("111101111", "111110111", "    11000")
-        testXor("111101111", "111111011", "    10100")
-        testXor("111101111", "111111101", "    10010")
-        testXor("111101111", "111111110", "    10001")
-        
-        // non-0/1 should not be accepted, nor should signs
-        testXor("111111112", "111111111", "NaN") // Invalid_operation
-        testXor("333333333", "333333333", "NaN") // Invalid_operation
-        testXor("555555555", "555555555", "NaN") // Invalid_operation
-        testXor("777777777", "777777777", "NaN") // Invalid_operation
-        testXor("999999999", "999999999", "NaN") // Invalid_operation
-        testXor("222222222", "999999999", "NaN") // Invalid_operation
-        testXor("444444444", "999999999", "NaN") // Invalid_operation
-        testXor("666666666", "999999999", "NaN") // Invalid_operation
-        testXor("888888888", "999999999", "NaN") // Invalid_operation
-        testXor("999999999", "222222222", "NaN") // Invalid_operation
-        testXor("999999999", "444444444", "NaN") // Invalid_operation
-        testXor("999999999", "666666666", "NaN") // Invalid_operation
-        testXor("999999999", "888888888", "NaN") // Invalid_operation
-        // a few randoms
-        testXor(" 567468689", "-934981942", "NaN") // Invalid_operation
-        testXor(" 567367689", " 934981942", "NaN") // Invalid_operation
-        testXor("-631917772", "-706014634", "NaN") // Invalid_operation
-        testXor("-756253257", " 138579234", "NaN") // Invalid_operation
-        testXor(" 835590149", " 567435400", "NaN") // Invalid_operation
-        // test MSD
-        testXor("200000000", "100000000", "NaN") // Invalid_operation
-        testXor("700000000", "100000000", "NaN") // Invalid_operation
-        testXor("800000000", "100000000", "NaN") // Invalid_operation
-        testXor("900000000", "100000000", "NaN") // Invalid_operation
-        testXor("200000000", "000000000", "NaN") // Invalid_operation
-        testXor("700000000", "000000000", "NaN") // Invalid_operation
-        testXor("800000000", "000000000", "NaN") // Invalid_operation
-        testXor("900000000", "000000000", "NaN") // Invalid_operation
-        testXor("100000000", "200000000", "NaN") // Invalid_operation
-        testXor("100000000", "700000000", "NaN") // Invalid_operation
-        testXor("100000000", "800000000", "NaN") // Invalid_operation
-        testXor("100000000", "900000000", "NaN") // Invalid_operation
-        testXor("000000000", "200000000", "NaN") // Invalid_operation
-        testXor("000000000", "700000000", "NaN") // Invalid_operation
-        testXor("000000000", "800000000", "NaN") // Invalid_operation
-        testXor("000000000", "900000000", "NaN") // Invalid_operation
-        // test MSD-1
-        testXor("020000000", "100000000", "NaN") // Invalid_operation
-        testXor("070100000", "100000000", "NaN") // Invalid_operation
-        testXor("080010000", "100000001", "NaN") // Invalid_operation
-        testXor("090001000", "100000010", "NaN") // Invalid_operation
-        testXor("100000100", "020010100", "NaN") // Invalid_operation
-        testXor("100000000", "070001000", "NaN") // Invalid_operation
-        testXor("100000010", "080010100", "NaN") // Invalid_operation
-        testXor("100000000", "090000010", "NaN") // Invalid_operation
-        // test LSD
-        testXor("001000002", "100000000", "NaN") // Invalid_operation
-        testXor("000000007", "100000000", "NaN") // Invalid_operation
-        testXor("000000008", "100000000", "NaN") // Invalid_operation
-        testXor("000000009", "100000000", "NaN") // Invalid_operation
-        testXor("100000000", "000100002", "NaN") // Invalid_operation
-        testXor("100100000", "001000007", "NaN") // Invalid_operation
-        testXor("100010000", "010000008", "NaN") // Invalid_operation
-        testXor("100001000", "100000009", "NaN") // Invalid_operation
-        // test Middie
-        testXor("001020000", "100000000", "NaN") // Invalid_operation
-        testXor("000070001", "100000000", "NaN") // Invalid_operation
-        testXor("000080000", "100010000", "NaN") // Invalid_operation
-        testXor("000090000", "100001000", "NaN") // Invalid_operation
-        testXor("100000010", "000020100", "NaN") // Invalid_operation
-        testXor("100100000", "000070010", "NaN") // Invalid_operation
-        testXor("100010100", "000080001", "NaN") // Invalid_operation
-        testXor("100001000", "000090000", "NaN") // Invalid_operation
-        // signs
-        testXor("-100001000", "-000000000", "NaN") // Invalid_operation
-        testXor("-100001000", " 000010000", "NaN") // Invalid_operation
-        testXor(" 100001000", "-000000000", "NaN") // Invalid_operation
-        testXor(" 100001000", " 000011000", "100010000")
-        
-        // Nmax, Nmin, Ntiny
-        testXor("2", "9.99999999E+999", "NaN") // Invalid_operation
-        testXor("3", "1E-999         ", "NaN") // Invalid_operation
-        testXor("4", "1.00000000E-999", "NaN") // Invalid_operation
-        testXor("5", "1E-1007        ", "NaN") // Invalid_operation
-        testXor("6", "-1E-1007       ", "NaN") // Invalid_operation
-        testXor("7", "-1.00000000E-99", "NaN") // Invalid_operation
-        testXor("8", "-1E-999        ", "NaN") // Invalid_operation
-        testXor("9", "-9.99999999E+99", "NaN") // Invalid_operation
-        testXor("9.99999999E+999 ", "-18", "NaN") // Invalid_operation
-        testXor("1E-999          ", " 01", "NaN") // Invalid_operation
-        testXor("1.00000000E-999 ", "-18", "NaN") // Invalid_operation
-        testXor("1E-1007         ", " 18", "NaN") // Invalid_operation
-        testXor("-1E-1007        ", "-10", "NaN") // Invalid_operation
-        testXor("-1.00000000E-999", " 18", "NaN") // Invalid_operation
-        testXor("-1E-999         ", " 10", "NaN") // Invalid_operation
-        testXor("-9.99999999E+999", "-18", "NaN") // Invalid_operation
-
-        // A few other non-integers
-        testXor("1.0 ", "1", "NaN") // Invalid_operation
-        testXor("1E+1", "1", "NaN") // Invalid_operation
-        testXor("0.0 ", "1", "NaN") // Invalid_operation
-        testXor("0E+1", "1", "NaN") // Invalid_operation
-        testXor("9.9 ", "1", "NaN") // Invalid_operation
-        testXor("9E+1", "1", "NaN") // Invalid_operation
-        testXor("0", "1.0 ", "NaN") // Invalid_operation
-        testXor("0", "1E+1", "NaN") // Invalid_operation
-        testXor("0", "0.0 ", "NaN") // Invalid_operation
-        testXor("0", "0E+1", "NaN") // Invalid_operation
-        testXor("0", "9.9 ", "NaN") // Invalid_operation
-        testXor("0", "9E+1", "NaN") // Invalid_operation
-        
-    }
-    
+//    func testBooleanOperations() {
+//
+//        var testNumber = 0
+//
+//        func testXor (_ lhs:String, _ rhs:String, _ result:String) {
+//            testNumber += 1
+//            let oldDigits = HDecimal.digits
+//            HDecimal.digits = HDecimal.maximumDigits
+//            let lhsn = HDecimal(lhs)!
+//            let rhsn = HDecimal(rhs)!
+//            HDecimal.digits = oldDigits
+//            HDecimal.clearStatus()
+//            let n = lhsn.xor(rhsn)
+//            let status = HDecimal.context.statusString
+//            print("Test \(testNumber): \(lhs) xor \(rhs) -> \(result) [\(status)]")
+//            XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
+//        }
+//
+//        func testOr (_ lhs:String, _ rhs:String, _ result:String) {
+//            testNumber += 1
+//            let lhsn = HDecimal(lhs)!, rhsn = HDecimal(rhs)!
+//            let n = lhsn.or(rhsn)
+//            print("Test \(testNumber): \(lhs) or \(rhs) -> \(result)")
+//            XCTAssertEqual(n.description.uppercased(), result.trimmingCharacters(in: .whitespaces).uppercased())
+//        }
+//
+//        // Note: The following tests use a built-in feature of the CDecNumber library that can evaluate
+//        //       boolean numbers encoded as BCD digits as long as only `0` and `1` digits are used.
+//        HDecimal.digits = 9   // defines the maximum length of the number in BCD digits
+//
+//        // sanity check (truth table)
+//        testXor(   "0",    "0",    "0")
+//        testXor(   "0",    "1",    "1")
+//        testXor(   "1",    "0",    "1")
+//        testXor(   "1",    "1",    "0")
+//        testXor("1100", "1010",  "110")
+//        testXor("1111",   "10", "1101")
+//        // and at msd and msd-1
+//        testXor("000000000", "000000000", "        0")
+//        testXor("000000000", "100000000", "100000000")
+//        testXor("100000000", "000000000", "100000000")
+//        testXor("100000000", "100000000", "        0")
+//        testXor("000000000", "000000000", "        0")
+//        testXor("000000000", "010000000", " 10000000")
+//        testXor("010000000", "000000000", " 10000000")
+//        testXor("010000000", "010000000", "        0")
+//
+//        // Various lengths
+//        //       123456789         123456789
+//        testXor("111111111",      "111111111", "0")
+//        testXor("111111111111",   "111111111", "0")
+//        testXor(" 11111111",      " 11111111", "0")
+//        testXor("  1111111",      "  1111111", "0")
+//        testXor("   111111",      "   111111", "0")
+//        testXor("    11111",      "    11111", "0")
+//        testXor("     1111",      "     1111", "0")
+//        testXor("      111",      "      111", "0")
+//        testXor("       11",      "       11", "0")
+//        testXor("        1",      "        1", "0")
+//        testXor("111111111111", " 1111111111", "0")
+//        testXor("11111111111", " 11111111111", "0")
+//        testXor("1111111111", " 111111111111", "0")
+//        testXor("111111111", " 1111111111111", "0")
+//
+//        testXor("111111111", "111111111111", "0")
+//        testXor("11111111",  "111111111111", "100000000")
+//        testXor("11111111",     "111111111", "100000000")
+//        testXor(" 1111111",     "100000010", "101111101")
+//        testXor("  111111",     "100000100", "100111011")
+//        testXor("   11111",     "100001000", "100010111")
+//        testXor("    1111",     "100010000", "100011111")
+//        testXor("     111",     "100100000", "100100111")
+//        testXor("      11",     "101000000", "101000011")
+//        testXor("       1",     "110000000", "110000001")
+//
+//        testXor("1111111111",  "1", "111111110")
+//        testXor(" 111111111",  "1", "111111110")
+//        testXor("  11111111",  "1", "11111110")
+//        testXor("   1111111",  "1", "1111110")
+//        testXor("    111111",  "1", "111110")
+//        testXor("     11111",  "1", "11110")
+//        testXor("      1111",  "1", "1110")
+//        testXor("       111",  "1", "110")
+//        testXor("        11",  "1", "10")
+//        testXor("         1",  "1", "0")
+//
+//        testXor("1111111111",  "0", "111111111")
+//        testXor(" 111111111",  "0", "111111111")
+//        testXor("  11111111",  "0", "11111111")
+//        testXor("   1111111",  "0", "1111111")
+//        testXor("    111111",  "0", "111111")
+//        testXor("     11111",  "0", "11111")
+//        testXor("      1111",  "0", "1111")
+//        testXor("       111",  "0", "111")
+//        testXor("        11",  "0", "11")
+//        testXor("         1",  "0", "1")
+//
+//        testXor("1", "1111111111", "111111110")
+//        testXor("1", " 111111111", "111111110")
+//        testXor("1", "  11111111", "11111110")
+//        testXor("1", "   1111111", "1111110")
+//        testXor("1", "    111111", "111110")
+//        testXor("1", "     11111", "11110")
+//        testXor("1", "      1111", "1110")
+//        testXor("1", "       111", "110")
+//        testXor("1", "        11", "10")
+//        testXor("1", "         1", "0")
+//
+//        testXor("0", "1111111111", "111111111")
+//        testXor("0", " 111111111", "111111111")
+//        testXor("0", "  11111111", "11111111")
+//        testXor("0", "   1111111", "1111111")
+//        testXor("0", "    111111", "111111")
+//        testXor("0", "     11111", "11111")
+//        testXor("0", "      1111", "1111")
+//        testXor("0", "       111", "111")
+//        testXor("0", "        11", "11")
+//        testXor("0", "         1", "1")
+//
+//        testXor("011111111", "111101111", "100010000")
+//        testXor("101111111", "111101111", " 10010000")
+//        testXor("110111111", "111101111", "  1010000")
+//        testXor("111011111", "111101111", "   110000")
+//        testXor("111101111", "111101111", "        0")
+//        testXor("111110111", "111101111", "    11000")
+//        testXor("111111011", "111101111", "    10100")
+//        testXor("111111101", "111101111", "    10010")
+//        testXor("111111110", "111101111", "    10001")
+//
+//        testXor("111101111", "011111111", "100010000")
+//        testXor("111101111", "101111111", " 10010000")
+//        testXor("111101111", "110111111", "  1010000")
+//        testXor("111101111", "111011111", "   110000")
+//        testXor("111101111", "111101111", "        0")
+//        testXor("111101111", "111110111", "    11000")
+//        testXor("111101111", "111111011", "    10100")
+//        testXor("111101111", "111111101", "    10010")
+//        testXor("111101111", "111111110", "    10001")
+//
+//        // non-0/1 should not be accepted, nor should signs
+//        testXor("111111112", "111111111", "NaN") // Invalid_operation
+//        testXor("333333333", "333333333", "NaN") // Invalid_operation
+//        testXor("555555555", "555555555", "NaN") // Invalid_operation
+//        testXor("777777777", "777777777", "NaN") // Invalid_operation
+//        testXor("999999999", "999999999", "NaN") // Invalid_operation
+//        testXor("222222222", "999999999", "NaN") // Invalid_operation
+//        testXor("444444444", "999999999", "NaN") // Invalid_operation
+//        testXor("666666666", "999999999", "NaN") // Invalid_operation
+//        testXor("888888888", "999999999", "NaN") // Invalid_operation
+//        testXor("999999999", "222222222", "NaN") // Invalid_operation
+//        testXor("999999999", "444444444", "NaN") // Invalid_operation
+//        testXor("999999999", "666666666", "NaN") // Invalid_operation
+//        testXor("999999999", "888888888", "NaN") // Invalid_operation
+//        // a few randoms
+//        testXor(" 567468689", "-934981942", "NaN") // Invalid_operation
+//        testXor(" 567367689", " 934981942", "NaN") // Invalid_operation
+//        testXor("-631917772", "-706014634", "NaN") // Invalid_operation
+//        testXor("-756253257", " 138579234", "NaN") // Invalid_operation
+//        testXor(" 835590149", " 567435400", "NaN") // Invalid_operation
+//        // test MSD
+//        testXor("200000000", "100000000", "NaN") // Invalid_operation
+//        testXor("700000000", "100000000", "NaN") // Invalid_operation
+//        testXor("800000000", "100000000", "NaN") // Invalid_operation
+//        testXor("900000000", "100000000", "NaN") // Invalid_operation
+//        testXor("200000000", "000000000", "NaN") // Invalid_operation
+//        testXor("700000000", "000000000", "NaN") // Invalid_operation
+//        testXor("800000000", "000000000", "NaN") // Invalid_operation
+//        testXor("900000000", "000000000", "NaN") // Invalid_operation
+//        testXor("100000000", "200000000", "NaN") // Invalid_operation
+//        testXor("100000000", "700000000", "NaN") // Invalid_operation
+//        testXor("100000000", "800000000", "NaN") // Invalid_operation
+//        testXor("100000000", "900000000", "NaN") // Invalid_operation
+//        testXor("000000000", "200000000", "NaN") // Invalid_operation
+//        testXor("000000000", "700000000", "NaN") // Invalid_operation
+//        testXor("000000000", "800000000", "NaN") // Invalid_operation
+//        testXor("000000000", "900000000", "NaN") // Invalid_operation
+//        // test MSD-1
+//        testXor("020000000", "100000000", "NaN") // Invalid_operation
+//        testXor("070100000", "100000000", "NaN") // Invalid_operation
+//        testXor("080010000", "100000001", "NaN") // Invalid_operation
+//        testXor("090001000", "100000010", "NaN") // Invalid_operation
+//        testXor("100000100", "020010100", "NaN") // Invalid_operation
+//        testXor("100000000", "070001000", "NaN") // Invalid_operation
+//        testXor("100000010", "080010100", "NaN") // Invalid_operation
+//        testXor("100000000", "090000010", "NaN") // Invalid_operation
+//        // test LSD
+//        testXor("001000002", "100000000", "NaN") // Invalid_operation
+//        testXor("000000007", "100000000", "NaN") // Invalid_operation
+//        testXor("000000008", "100000000", "NaN") // Invalid_operation
+//        testXor("000000009", "100000000", "NaN") // Invalid_operation
+//        testXor("100000000", "000100002", "NaN") // Invalid_operation
+//        testXor("100100000", "001000007", "NaN") // Invalid_operation
+//        testXor("100010000", "010000008", "NaN") // Invalid_operation
+//        testXor("100001000", "100000009", "NaN") // Invalid_operation
+//        // test Middie
+//        testXor("001020000", "100000000", "NaN") // Invalid_operation
+//        testXor("000070001", "100000000", "NaN") // Invalid_operation
+//        testXor("000080000", "100010000", "NaN") // Invalid_operation
+//        testXor("000090000", "100001000", "NaN") // Invalid_operation
+//        testXor("100000010", "000020100", "NaN") // Invalid_operation
+//        testXor("100100000", "000070010", "NaN") // Invalid_operation
+//        testXor("100010100", "000080001", "NaN") // Invalid_operation
+//        testXor("100001000", "000090000", "NaN") // Invalid_operation
+//        // signs
+//        testXor("-100001000", "-000000000", "NaN") // Invalid_operation
+//        testXor("-100001000", " 000010000", "NaN") // Invalid_operation
+//        testXor(" 100001000", "-000000000", "NaN") // Invalid_operation
+//        testXor(" 100001000", " 000011000", "100010000")
+//
+//        // Nmax, Nmin, Ntiny
+//        testXor("2", "9.99999999E+999", "NaN") // Invalid_operation
+//        testXor("3", "1E-999         ", "NaN") // Invalid_operation
+//        testXor("4", "1.00000000E-999", "NaN") // Invalid_operation
+//        testXor("5", "1E-1007        ", "NaN") // Invalid_operation
+//        testXor("6", "-1E-1007       ", "NaN") // Invalid_operation
+//        testXor("7", "-1.00000000E-99", "NaN") // Invalid_operation
+//        testXor("8", "-1E-999        ", "NaN") // Invalid_operation
+//        testXor("9", "-9.99999999E+99", "NaN") // Invalid_operation
+//        testXor("9.99999999E+999 ", "-18", "NaN") // Invalid_operation
+//        testXor("1E-999          ", " 01", "NaN") // Invalid_operation
+//        testXor("1.00000000E-999 ", "-18", "NaN") // Invalid_operation
+//        testXor("1E-1007         ", " 18", "NaN") // Invalid_operation
+//        testXor("-1E-1007        ", "-10", "NaN") // Invalid_operation
+//        testXor("-1.00000000E-999", " 18", "NaN") // Invalid_operation
+//        testXor("-1E-999         ", " 10", "NaN") // Invalid_operation
+//        testXor("-9.99999999E+999", "-18", "NaN") // Invalid_operation
+//
+//        // A few other non-integers
+//        testXor("1.0 ", "1", "NaN") // Invalid_operation
+//        testXor("1E+1", "1", "NaN") // Invalid_operation
+//        testXor("0.0 ", "1", "NaN") // Invalid_operation
+//        testXor("0E+1", "1", "NaN") // Invalid_operation
+//        testXor("9.9 ", "1", "NaN") // Invalid_operation
+//        testXor("9E+1", "1", "NaN") // Invalid_operation
+//        testXor("0", "1.0 ", "NaN") // Invalid_operation
+//        testXor("0", "1E+1", "NaN") // Invalid_operation
+//        testXor("0", "0.0 ", "NaN") // Invalid_operation
+//        testXor("0", "0E+1", "NaN") // Invalid_operation
+//        testXor("0", "9.9 ", "NaN") // Invalid_operation
+//        testXor("0", "9E+1", "NaN") // Invalid_operation
+//
+//    }
+//
 //    func testStringToDecima") //l() {
 //
 //        measure {

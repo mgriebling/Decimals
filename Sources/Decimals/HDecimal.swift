@@ -683,7 +683,7 @@ extension HDecimal {
      */
     private static func rightAngle(res: inout HDecimal, x: HDecimal, quad: HDecimal, r0: HDecimal, r1: HDecimal, r2: HDecimal, r3: HDecimal) -> Bool {
         var r = x % quad // decNumberRemainder(&r, x, quad, &Ctx);
-        if r.isZero { return false }
+        if r.isZero { return true }
         if x.isZero {
             res = r0
         } else {
@@ -696,7 +696,7 @@ extension HDecimal {
                 res = r1
             }
         }
-        return true
+        return false
     }
     
     private static func convertToRadians (res: inout HDecimal, x: HDecimal, r0: HDecimal, r1: HDecimal, r2: HDecimal, r3: HDecimal) -> Bool {
