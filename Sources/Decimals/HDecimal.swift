@@ -1334,6 +1334,23 @@ extension HDecimal : CustomStringConvertible {
         return String(cString: &cs)
     }
     
+    public var scientificString : String {
+        let x = self.description
+        if x.contains("E") { return x }
+        if self.isZero { return "0." + "".padding(toLength: HDecimal.digits-1, withPad: "0", startingAt: 0) + "E0"}
+        
+        // Otherwise we need to do some processing
+        var digits = self.bcd.map { String($0) }
+        let exp = self.exponent + digits.count - 1
+        var result = self.isNegative ? "-" : ""
+        let first = digits.removeFirst()
+        result += first + "."
+        for digit in digits {
+            result += digit
+        }
+        return result + "E\(exp)"
+    }
+    
 }
 
 // Mark: - Comparable compliance

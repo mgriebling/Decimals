@@ -947,13 +947,14 @@ final class DecimalsTests: XCTestCase {
 //        testXor("0", "9E+1", "NaN") // Invalid_operation
 //
 //    }
-//
-//    func testStringToDecima") //l() {
-//
+
+    func testStringToDecimal() {
+        let x = HDecimal("1000000e-20")
+        print(x.scientificString, "  ", x.description)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
 //        }
-//
-//    }
+
+    }
     
 }
