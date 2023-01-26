@@ -196,9 +196,10 @@ public struct HDecimal {
     
     public var significand: HDecimal {
         var a = decimal
-        var zero = HDecimal.zero.decimal
+        var shift = HDecimal(integerLiteral: -self.exponent).decimal
         var result = decNumber()
-        decNumberRescale(&result, &a, &zero, &HDecimal.context.base)
+        decNumberScaleB(&result, &a, &shift, &HDecimal.context.base)
+        // decNumberRescale(&result, &a, &zero, &HDecimal.context.base)
         return HDecimal(result)
     }
     
@@ -245,7 +246,8 @@ public struct HDecimal {
         var a = significand
         var exp = HDecimal(exponent)
         var result = decNumber()
-        decNumberRescale(&result, &a.decimal, &exp.decimal, &HDecimal.context.base)
+        decNumberScaleB(&result, &a.decimal, &exp.decimal, &HDecimal.context.base)
+        // decNumberRescale(&result, &a.decimal, &exp.decimal, &HDecimal.context.base)
         if sign == .minus {
             decNumberCopyNegate(&decimal, &result)
         } else {

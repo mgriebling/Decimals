@@ -949,8 +949,9 @@ final class DecimalsTests: XCTestCase {
 //    }
 
     func testStringToDecimal() {
-        let x = HDecimal("1000000e-20")
-        print(x.scientificString, "  ", x.description)
+        let x = HDecimal("12e5")
+        let y = HDecimal(sign: .minus, exponent: 10, significand: HDecimal.one)
+        print(x.exponent, "  ", x.significand, "  ", x, y)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
 //        }
