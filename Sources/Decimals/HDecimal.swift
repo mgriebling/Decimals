@@ -1092,7 +1092,7 @@ public extension HDecimal {
         for _ in 1...digits {
             working.append(UInt8.random(in: 0...9))
         }
-        var x = HDecimal(sign: .plus, bcd: working, exponent: -digits+1)
+        var x = HDecimal(sign: .plus, bcd: working, exponent: 0)
         while x > range.upperBound { x = x.scaleB(-1) }
         if x < range.lowerBound { x += range.lowerBound }
         return x
