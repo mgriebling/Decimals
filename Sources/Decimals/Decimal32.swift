@@ -425,6 +425,7 @@ extension Decimal32: LogicalOperations {
     public func logical() -> decDouble { self.double }
     public func base10(_ a: decDouble) -> Decimal32 { Decimal32(a) }
     public var zero: decDouble { decDouble() }
+    public func copy() -> decDouble { self.double }
     
     public func decOr(_ a: UnsafeMutablePointer<decDouble>!, _ b: UnsafePointer<decDouble>!, _ c: UnsafePointer<decDouble>!) {
         decDoubleOr(a, b, c, &Decimal32.context.base)

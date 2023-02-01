@@ -425,6 +425,7 @@ extension Decimal128 : ExpressibleByStringLiteral {
 extension Decimal128: LogicalOperations {
     
     public var single: decQuad { self.quad }
+    public func copy() -> decQuad { self.quad }
     
     private func convert (fromBase from: Int, toBase base: Int) -> Decimal128 {
         Utilities.convert(num: self, fromBase: from, toBase: base)

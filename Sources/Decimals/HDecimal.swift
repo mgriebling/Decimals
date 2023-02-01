@@ -656,6 +656,8 @@ public struct HDecimal {
 
 extension HDecimal: LogicalOperations {
     
+    public func copy() -> decNumber { self.decimal }
+    
     public var single: decNumber { self.decimal }
     
     // MARK: - Compliance to LogicalOperations

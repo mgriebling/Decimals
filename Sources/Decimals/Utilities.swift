@@ -379,6 +379,7 @@ public protocol LogicalOperations : Real {
     func decFromString(_ a: UnsafeMutablePointer<R>!, s: String)
     
     func logical() -> T
+    func copy() -> T
     func base10(_ a: T) -> Self
     func negate() -> Self
     func div (_ b: Self) -> Self
@@ -430,18 +431,18 @@ public extension LogicalOperations {
     }
 
     func shift (_ a: Self) -> Self {
-        var b = a.logical()
-        var a = self.logical()
+        var a = a.copy()
+        var b = self.logical()
         var result = zero
-        decShift(&result, &a, &b)
+        decShift(&result, &b, &a)
         return base10(result)
     }
 
     func rotate (_ a: Self) -> Self {
-        var b = a.logical()
-        var a = self.logical()
+        var a = a.copy()
+        var b = self.logical()
         var result = zero
-        decRotate(&result, &a, &b)
+        decRotate(&result, &b, &a)
         return base10(result)
     }
     

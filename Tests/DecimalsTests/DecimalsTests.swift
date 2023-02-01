@@ -955,7 +955,10 @@ final class DecimalsTests: XCTestCase {
         let a = HDecimal(4)
         let b = HDecimal(2)
         let c = a.or(b)
-        print(x.exponent, "  ", x.significand, "  ", x, y, z, c)
+        let d = 1 << a
+        let e = HDecimal.one.rotate(b)
+        let f = HDecimal.one.rotate(-b)
+        print(x.exponent, "  ", x.significand, "  ", x, y, z, c, d, e, f)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
 //        }

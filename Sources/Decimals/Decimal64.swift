@@ -425,6 +425,7 @@ extension Decimal64 : AdditiveArithmetic {
 extension Decimal64: LogicalOperations {
     
     public var single: decDouble { self.double }
+    public func copy() -> decDouble { self.double }
     
     private func convert (fromBase from: Int, toBase base: Int) -> Decimal64 {
         Utilities.convert(num: self, fromBase: from, toBase: base)
