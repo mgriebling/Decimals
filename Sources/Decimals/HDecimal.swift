@@ -290,8 +290,8 @@ public struct HDecimal {
     public init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int) {
         var bcd = bcd
         initContext(digits: HDecimal.context.digits)
-        decimal.digits = Int32(HDecimal.context.digits)
-        decNumberSetBCD(&decimal, &bcd, UInt32(decimal.digits))
+        decimal.digits = Int32(bcd.count)
+        decNumberSetBCD(&decimal, &bcd, UInt32(bcd.count))
         var exp = decNumber()
         decNumberFromInt32(&exp, Int32(exponent))
         var result = decNumber()
@@ -1084,12 +1084,14 @@ public extension HDecimal {
 // Mark: - Combination/Permutation functions
 public extension HDecimal {
     
-    static func random (in range: Range<HDecimal> = 0..<1) -> HDecimal {
+    static func random (in range: Range<HDecimal> = 0..<1, randomDigits:Bool=false) -> HDecimal {
         let digits = HDecimal.digits  // working digits
         var working = [UInt8](); working.reserveCapacity(digits)
         
-        // generate some randome digits
-        for _ in 1...digits {
+        // generate some random digits
+        let maxDigits = randomDigits ? Int.random(in: 1..<digits) : digits
+        working.append(UInt8.random(in: 1...9))
+        for _ in 1..<maxDigits {
             working.append(UInt8.random(in: 0...9))
         }
         var x = HDecimal(sign: .plus, bcd: working, exponent: 0)

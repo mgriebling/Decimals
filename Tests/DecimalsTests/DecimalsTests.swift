@@ -951,7 +951,7 @@ final class DecimalsTests: XCTestCase {
     func testStringToDecimal() {
         let x = HDecimal("12e5")
         let y = HDecimal(sign: .minus, exponent: 10, significand: HDecimal.one)
-        let z = HDecimal.random(in: 0..<HDecimal(UInt64.max)+1)
+        let z = HDecimal.random(in: 0..<HDecimal(UInt64.max)+1, randomDigits: true)
         print(x.exponent, "  ", x.significand, "  ", x, y, z)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
