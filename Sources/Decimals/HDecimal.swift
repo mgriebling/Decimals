@@ -329,6 +329,15 @@ public struct HDecimal {
         return result
     }
     
+    private func getRadixPrefix(_ radix: Int) -> String {
+        switch radix {
+            case  2: return "0b"
+            case 16: return "0x"
+            case  8: return "0o"
+            default: return ""
+        }
+    }
+    
     private func convert (fromBase from: Int, toBase base: Int) -> HDecimal {
         if self.isSpecial || from == base { return self }  // ensure NaNs are propagated
         let oldDigits = HDecimal.digits
@@ -338,24 +347,32 @@ public struct HDecimal {
         return y
     }
     
-    public func string(withRadix radix: Int, showBase: Bool = false, showSign: Bool = false) -> String {
-        var str = ""
-        defer {
-            // these formatting options are always performed
-            if showBase { str += getMiniRadixDigits(radix) }
-            str = showSign && self.isNegative ? "-" + str : str
+    public func string(withRadix radix: Int, showBase: Bool = false, miniBase: Bool = true, showSign: Bool = false) -> String {
+        
+        func addModifiers(_ str:String) -> String {
+            var str = str
+            if showBase {
+                if miniBase {
+                    str += getMiniRadixDigits(radix)
+                } else {
+                    str = getRadixPrefix(radix) + str
+                }
+            }
+            return showSign && self.isNegative ? "-" + str : str
         }
-        if self.isSpecial || self.isZero { str = self.description; return str }
+
+        if self.isSpecial || self.isZero { return addModifiers(self.description) }
         var n = self.integer.abs
         
         // restrict to legal radix values 2 to 36
         let dradix = HDecimal(Swift.min(36, Swift.max(radix, 2)))
+        var str = ""
         while !n.isZero {
             let digit = n % dradix
             n = n.idiv(dradix)
             str = getRadixDigitFor(digit.int) + str
         }
-        return str
+        return addModifiers(str)
     }
     
     public static var versionString : String { String(cString: decNumberVersion()) }

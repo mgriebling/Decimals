@@ -952,7 +952,7 @@ final class DecimalsTests: XCTestCase {
         let x = HDecimal("12e5")
         let y = HDecimal(sign: .minus, exponent: 10, significand: HDecimal.one)
         let z = HDecimal.zero
-        let s = z.string(withRadix: 16, showBase: true)
+        let s = z.string(withRadix: 16, showBase: true, miniBase: false)
         print(x.exponent, "  ", x.significand, "  ", x, y, z, s)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
