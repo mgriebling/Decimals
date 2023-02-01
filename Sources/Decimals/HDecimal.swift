@@ -339,19 +339,23 @@ public struct HDecimal {
     }
     
     public func string(withRadix radix: Int, showBase: Bool = false, showSign: Bool = false) -> String {
-        if self.isSpecial || self.isZero { return self.description }
+        var str = ""
+        defer {
+            // these formatting options are always performed
+            if showBase { str += getMiniRadixDigits(radix) }
+            str = showSign && self.isNegative ? "-" + str : str
+        }
+        if self.isSpecial || self.isZero { str = self.description; return str }
         var n = self.integer.abs
         
         // restrict to legal radix values 2 to 36
         let dradix = HDecimal(Swift.min(36, Swift.max(radix, 2)))
-        var str = ""
         while !n.isZero {
             let digit = n % dradix
             n = n.idiv(dradix)
             str = getRadixDigitFor(digit.int) + str
         }
-        if showBase { str += getMiniRadixDigits(radix) }
-        return showSign && self.isNegative ? "-" + str : str
+        return str
     }
     
     public static var versionString : String { String(cString: decNumberVersion()) }
