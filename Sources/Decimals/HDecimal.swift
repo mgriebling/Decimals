@@ -660,11 +660,13 @@ extension HDecimal: LogicalOperations {
     
     // MARK: - Compliance to LogicalOperations
     public func logical() -> decNumber {
-//        var s = self.decimal
-//        s.exponent = Swift.min(decimal.exponent, 0)  // ignore overflow
-        return self.decimal
+        let x = self.convert(fromBase: 10, toBase: 2)
+        return x.decimal
     }
-    public func base10(_ a: decNumber) -> HDecimal { HDecimal(a) }
+    public func base10(_ a: decNumber) -> HDecimal {
+        let x = HDecimal(a).convert(fromBase: 2, toBase: 10)
+        return x
+    }
     
     public var zero: decNumber { decNumber() }
     
