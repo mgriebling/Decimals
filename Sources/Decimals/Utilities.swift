@@ -448,15 +448,22 @@ public extension LogicalOperations {
     
     /// Converts a decimal number string to a Decimal number
     func numberFromString(_ string: String, digits: Int = 0, radix: Int = 10) -> Self? {
+        var string = string.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "_", with: "")
+        var radix = radix
+        if string.hasPrefix("0x") { string.removeFirst(2); radix = 16 }
+        if string.hasPrefix("0o") { string.removeFirst(2); radix = 8 }
+        if string.hasPrefix("0b") { string.removeFirst(2); radix = 2 }
+        if string.hasSuffix("₁₆") { string.removeLast(2); radix = 16 }
+        if string.hasSuffix("₈")  { string.removeLast(); radix = 8 }
+        if string.hasSuffix("₂")  { string.removeLast(); radix = 2 }
         if radix == 10 {
-            let ls = string.replacingOccurrences(of: "_", with: "")  // remove underscores, spaces & force uppercase
             // use library function for string conversion
             var number = single
-            decFromString(&number, s: ls)
+            decFromString(&number, s: string)
             return Self(number)
         } else {
             // convert non-base 10 string to an integral Decimal number
-            let ls = string.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "_", with: "").uppercased()  // remove underscores, spaces & force uppercase
+            let ls = string.uppercased()  // force uppercase
             var number = Self(0)
             let radixNumber = Self(radix)
             for digit in ls {

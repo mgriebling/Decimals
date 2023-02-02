@@ -275,6 +275,7 @@ public struct HDecimal {
     public init?(_ s: String, digits: Int = 0, radix: Int = 10) {
         let digits = digits == 0 ? (HDecimal.digits == 0 ? HDecimal.nominalDigits : HDecimal.digits) : digits
         initContext(digits: digits)
+        
         if let x = numberFromString(s, digits: digits, radix: radix) {
             decimal = x.decimal; return
         }
