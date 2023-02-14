@@ -25,7 +25,9 @@ public struct HDecimal {
     
     /// Class properties
     public static let maximumDigits = Int(DECNUMDIGITS)
-    public static let maximumExponent = 999999999        // maximum adjusted exponent ditto
+    
+    // Note: exponent is < theoretical maximum to ensure Ln() and Exp() work correctly
+    public static let maximumExponent = 9999999          // maximum adjusted exponent ditto
     public static let minimumExponent = -maximumExponent // minimum adjusted exponent ditto
     public static let nominalDigits = 38                 // number of decimal digits in Apple's Decimal type
     

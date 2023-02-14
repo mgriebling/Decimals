@@ -958,7 +958,10 @@ final class DecimalsTests: XCTestCase {
         let d = 1 << a
         let e = HDecimal.one.rotate(b)
         let f = HDecimal.one.rotate(-b)
-        print(x.exponent, "  ", x.significand, "  ", x, y, z, c, d, e, f)
+        HDecimal.digits = 128
+        let g = HDecimal.one / HDecimal(stringLiteral: "0.3048")
+        let h = HDecimal.greatestFiniteMagnitude.ln()
+        print(x.exponent, "  ", x.significand, "  ", x, y, z, c, d, e, f, g, h)
 //        measure {
 //            let _ = HDecimal(Utilities.piString)
 //        }
