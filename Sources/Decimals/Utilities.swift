@@ -11,7 +11,7 @@ import CDecNumber
 import Numerics
 
 // protocol to allow HDecimal, Decimal32, Decimal64, Decimal128 to use some common operations
-public protocol DecReals: Real {
+public protocol DecReals: Real, Codable {
 
     static var maximumDigits: Int { get }
     
@@ -21,6 +21,120 @@ public protocol DecReals: Real {
     init(sign: FloatingPointSign, bcd: [UInt8], exponent: Int)
     init(_ value: HDecimal)
     init?(_ s: String, radix: Int)
+
+}
+
+public enum AngleType : Int, Codable {
+    case degrees, radians, gradians
+}
+
+public struct Angle {
+    let number: any Real
+    let angle: AngleType
+    
+    // MARK: - Archival(Codable) Operations
+    enum CodingKeys: String, CodingKey {
+        case number
+        case angle
+    }
+
+//    public init(from decoder: Decoder) throws {
+//        // FIXME: - How to encode/decode any types?
+//        let values = try decoder.container(keyedBy: CodingKeys.self)
+//        let number = try decoder.decode(DecReals.self, forKey: CodingKeys.number)
+//        let angle = try values.decode(AngleType.self, forKey: CodingKeys.angle)
+//        self.init(number: number, angle: angle)
+//    }
+//
+//    public func encode(to encoder: Encoder) throws {
+//
+//    }
+
+    init(_ number: any Real, angle: AngleType = .radians) {
+        self.number = number
+        self.angle = angle
+    }
+}
+
+/// Implementation of Angle-based trig functions
+extension Real {
+    
+    static var degreesPerCircle  : Self { Self(360) }
+    static var gradiansPerCircle : Self { Self(400) }
+    static var radiansPerCircle  : Self { 2 * Self.pi }
+    
+    /* Check for right angle multiples and if exact, return the apropriate
+     * quadrant constant directly.
+     */
+    private static func rightAngle(res: inout Self, x: Self, quad: Self, r0: Self, r1: Self, r2: Self, r3: Self) -> Bool {
+        var r = x.remainder(dividingBy: quad) // decNumberRemainder(&r, x, quad, &Ctx);
+        if r.isZero { return true }
+        if x.isZero {
+            res = r0
+        } else {
+            r = quad + quad // dn_add(&r, quad, quad); dn_compare(&r, &r, x);
+            if r == x {
+                res = r2
+            } else if r.isNegative {
+                res = r3
+            } else {
+                res = r1
+            }
+        }
+        return false
+    }
+    
+    static func toRadians (_ x: Angle, r0: Self, r1: Self, r2: Self, r3: Self) -> (Self, Bool) {
+        let circle, right: Self
+        let number = x.number as! Self
+        switch x.angle {
+            case .radians:  return (number.remainder(dividingBy: radiansPerCircle), false)
+            case .degrees:  circle = degreesPerCircle; right = degreesPerCircle/4
+            case .gradians: circle = gradiansPerCircle; right = gradiansPerCircle/4
+        }
+        var fm = number.remainder(dividingBy: circle)
+        if fm.isNegative { fm += circle }
+        var res = Self.zero
+        if rightAngle(res: &res, x: fm, quad: right, r0: r0, r1: r1, r2: r2, r3: r3) { return (res, true) }
+        return (fm * radiansPerCircle / circle, false)
+    }
+    
+    static func radians (_ x: Self, to angle: AngleType) -> Self {
+        let circle: Self
+        switch angle {
+            case .radians:  return x    // no conversion needed
+            case .degrees:  circle = degreesPerCircle
+            case .gradians: circle = gradiansPerCircle
+        }
+        return x * circle / radiansPerCircle
+    }
+    
+    public static func sin(_ angle: Angle) -> Self {
+        let result = toRadians(angle, r0:0, r1:1, r2:0, r3:1)
+        return result.1 ? result.0 : sin(result.0)
+    }
+    
+    public static func cos(_ angle: Angle) -> Self {
+        let result = toRadians(angle, r0:1, r1:0, r2:1, r3:0)
+        return result.1 ? result.0 : cos(result.0)
+    }
+    
+    public static func tan(_ angle: Angle) -> Self {
+        let result = toRadians(angle,r0:0, r1:Self.nan, r2:0, r3:Self.nan)
+        return result.1 ? result.0 : tan(result.0)
+    }
+    
+    public static func asin(_ x: any Real, to angle:AngleType) -> Angle {
+        Angle(asin(x as! Self), angle: angle)
+    }
+    
+    public static func acos(_ x: any Real, to angle:AngleType) -> Angle {
+        Angle(acos(x as! Self), angle: angle)
+    }
+    
+    public static func atan(_ x: any Real, to angle:AngleType) -> Angle {
+        Angle(atan(x as! Self), angle: angle)
+    }
     
 }
 

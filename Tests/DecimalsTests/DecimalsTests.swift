@@ -961,11 +961,10 @@ final class DecimalsTests: XCTestCase {
         HDecimal.digits = 128
         let g = HDecimal.one / HDecimal(stringLiteral: "0.3048")
         let h = HDecimal.greatestFiniteMagnitude.ln()
-        print(x.exponent, "  ", x.significand, "  ", x, y, z, c, d, e, f, g, h)
-//        measure {
-//            let _ = HDecimal(Utilities.piString)
-//        }
-
+        let i = Double.sin(Angle(Double.pi/2, angle: .radians))
+        let j = HDecimal.sin(Angle(HDecimal.pi, angle: .radians))
+        let k = Decimal128.sin(Angle(Decimal128.pi/4, angle: .radians))
+        print(x.exponent, "  ", x.significand, "  ", x, y, z, c, d, e, f, g, h, i, j, k)
     }
     
 }

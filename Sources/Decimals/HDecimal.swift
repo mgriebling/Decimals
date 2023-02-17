@@ -49,7 +49,7 @@ public struct HDecimal {
     static public private(set) var context: DecContext = { DecContext(initKind: .base) }()
     
     /// Active angular measurement unit
-    public static var angularMeasure = UnitAngle.radians
+    public static let angularMeasure = AngleType.radians
     
     /// Internal number representation
     fileprivate(set) var decimal = decNumber()
@@ -708,53 +708,6 @@ extension HDecimal {
     
     static var SINCOS_DIGITS : Int { HDecimal.maximumDigits }
     
-    /* Check for right angle multiples and if exact, return the apropriate
-     * quadrant constant directly.
-     */
-    private static func rightAngle(res: inout HDecimal, x: HDecimal, quad: HDecimal, r0: HDecimal, r1: HDecimal, r2: HDecimal, r3: HDecimal) -> Bool {
-        var r = x % quad // decNumberRemainder(&r, x, quad, &Ctx);
-        if r.isZero { return true }
-        if x.isZero {
-            res = r0
-        } else {
-            r = quad + quad // dn_add(&r, quad, quad); dn_compare(&r, &r, x);
-            if r == x {
-                res = r2
-            } else if r.isNegative {
-                res = r3
-            } else {
-                res = r1
-            }
-        }
-        return false
-    }
-    
-    private static func convertToRadians (res: inout HDecimal, x: HDecimal, r0: HDecimal, r1: HDecimal, r2: HDecimal, r3: HDecimal) -> Bool {
-        let circle, right : HDecimal
-        switch HDecimal.angularMeasure {
-            case .radians:  res = x % _2pi; return true // no conversion needed - just reduce the range
-            case .degrees:  circle = 360; right = 90
-            case .gradians: circle = 400; right = 100
-            default: return true
-        }
-        var fm = x % circle
-        if fm.isNegative { fm += circle }
-        if rightAngle(res: &res, x: fm, quad: right, r0: r0, r1: r1, r2: r2, r3: r3) { return false }
-        res = fm * HDecimal._2pi / circle
-        return true
-    }
-    
-    private static func convertFromRadians (res: inout HDecimal, x: HDecimal) {
-        let circle: HDecimal
-        switch HDecimal.angularMeasure {
-            case .radians:  res = x; return    // no conversion needed
-            case .degrees:  circle = 360
-            case .gradians: circle = 400
-            default: return
-        }
-        res = x * circle / HDecimal._2pi
-    }
-    
     private static func sincosTaylor(_ a : HDecimal, sout: inout HDecimal?, cout: inout HDecimal?) {
         var a2, t, j, z, s, c : HDecimal
         let digits = HDecimal.digits
@@ -900,16 +853,16 @@ extension HDecimal {
     
     func sin() -> HDecimal {
         let x = self
-        var x2 = HDecimal.zero
         var res : HDecimal? = HDecimal.zero
         
         if x.isSpecial {
             res!.setNAN()
         } else {
-            if HDecimal.convertToRadians(res: &x2, x: x, r0: 0, r1: 1, r2: 0, r3: 1) {
-                HDecimal.sincosTaylor(x2, sout: &res, cout: &HDecimal.Nil)  // sincosTaylor(&x2, res, NULL);
+            let state = HDecimal.toRadians(Angle(x, angle: HDecimal.angularMeasure), r0: 0, r1: 1, r2: 0, r3: 1)
+            if !state.1 {
+                HDecimal.sincosTaylor(state.0, sout: &res, cout: &HDecimal.Nil)  // sincosTaylor(&x2, res, NULL);
             } else {
-                res = x2  // decNumberCopy(res, &x2);
+                res = state.0  // decNumberCopy(res, &x2);
             }
         }
         return res!
@@ -917,16 +870,16 @@ extension HDecimal {
     
     func cos() -> HDecimal {
         let x = self
-        var x2 = HDecimal.zero
         var res : HDecimal? = HDecimal.zero
         
         if x.isSpecial {
             res!.setNAN()
         } else {
-            if HDecimal.convertToRadians(res: &x2, x: x, r0:1, r1:0, r2:1, r3:0) {
-                HDecimal.sincosTaylor(x2, sout: &HDecimal.Nil, cout: &res)
+            let state = HDecimal.toRadians(Angle(x, angle: HDecimal.angularMeasure), r0:1, r1:0, r2:1, r3:0)
+            if !state.1 {
+                HDecimal.sincosTaylor(state.0, sout: &HDecimal.Nil, cout: &res)
             } else {
-                res = x2  // decNumberCopy(res, &x2);
+                res = state.0  // decNumberCopy(res, &x2);
             }
         }
         return res!
@@ -934,7 +887,6 @@ extension HDecimal {
     
     func tan() -> HDecimal {
         let x = self
-        var x2 = HDecimal.zero
         var res : HDecimal? = HDecimal.zero
         
         if x.isSpecial {
@@ -942,7 +894,9 @@ extension HDecimal {
         } else {
             let digits = HDecimal.digits
             HDecimal.digits = HDecimal.SINCOS_DIGITS
-            if HDecimal.convertToRadians(res: &x2, x: x, r0:0, r1:HDecimal.NaN, r2:0, r3:HDecimal.NaN) {
+            let state = HDecimal.toRadians(Angle(x, angle: HDecimal.angularMeasure), r0:0, r1:HDecimal.NaN, r2:0, r3:HDecimal.NaN)
+            var x2 = state.0
+            if !state.1 {
                 var s, c : HDecimal?
                 s = HDecimal.zero; c = HDecimal.zero
                 HDecimal.sincosTaylor(x2, sout: &s, cout: &c)
@@ -957,15 +911,13 @@ extension HDecimal {
     func arcSin() -> HDecimal {
         var res = HDecimal.zero
         HDecimal.asin(res: &res, x: self)
-        HDecimal.convertFromRadians(res: &res, x: res)
-        return res
+        return HDecimal.radians(res, to:HDecimal.angularMeasure)
     }
     
     func arcCos() -> HDecimal {
         var res = HDecimal.zero
         HDecimal.acos(res: &res, x: self)
-        HDecimal.convertFromRadians(res: &res, x: res)
-        return res
+        return HDecimal.radians(res, to:HDecimal.angularMeasure)
     }
     
     func arcTan() -> HDecimal {
@@ -981,14 +933,12 @@ extension HDecimal {
         } else {
             HDecimal.atan(res: &z, x: x)
         }
-        HDecimal.convertFromRadians(res: &z, x: z)
-        return z
+        return HDecimal.radians(z, to:HDecimal.angularMeasure)
     }
     
     func arcTan2(b: HDecimal) -> HDecimal {
-        var z = HDecimal.atan2(y: self, x: b)
-        HDecimal.convertFromRadians(res: &z, x: z)
-        return z
+        let z = HDecimal.atan2(y: self, x: b)
+        return HDecimal.radians(z, to:HDecimal.angularMeasure)
     }
 }
 

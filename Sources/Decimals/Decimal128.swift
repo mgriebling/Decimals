@@ -28,7 +28,7 @@ public struct Decimal128 {
     static public private(set) var context = DecContext(initKind: .dec128)
     
     /// Active angular measurement unit
-    public static var angularMeasure = UnitAngle.radians
+    public static let angularMeasure = UnitAngle.radians
     
     /// Internal number representation
     fileprivate var decimal = decimal128()
